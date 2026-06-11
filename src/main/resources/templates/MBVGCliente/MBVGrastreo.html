@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rastrear Viaje - Linomove</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .rastreo-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .rastreo-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+        #map {
+            width: 100%;
+            height: 430px;
+            border-radius: 14px;
+            border: 1px solid #dbeafe;
+            background: #e9ecef;
+        }
+
+        .map-empty {
+            height: 430px;
+            border-radius: 14px;
+            background: #e9ecef;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-route {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 5px solid #2563eb;
+        }
+
+        .route-point {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #eef2f7;
+        }
+
+        .route-title {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .map-info {
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 12px 14px;
+            margin-top: 14px;
+        }
+
+        .progress {
+            background-color: #e5e7eb;
+        }
+
+        .page-header {
+            border-left: 6px solid #0d6efd;
+        }
+    </style>
+</head>
+
+<body class="rastreo-bg py-4 d-flex flex-column min-vh-100">
+    
+    <div class="container flex-grow-1">
+
+        <div class="rastreo-card mb-4 p-3 page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="m-0 fw-bold">
+                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                    Rastreo en Tiempo Real
+                </h4>
+
+                <a th:href="@{/cliente/dashboard}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Volver
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-8 mb-4">
+                <div class="rastreo-card p-4 h-100">
+                    <h5 class="text-primary mb-3 fw-bold">
+                        <i class="fas fa-map-marked-alt me-2"></i>Mapa de Ruta
+                    </h5>
+
+                    <div th:if="${reservaActiva != null}">
+                        <div id="map"></div>
+
+                        <div class="map-info">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <strong class="text-primary">
+                                        <i class="fas fa-route me-1"></i>
+                                        Ruta activa:
+                                    </strong>
+                                    <span th:text="${reservaActiva.origen}"></span>
+                                    <i class="fas fa-arrow-right mx-1 text-primary"></i>
+                                    <span th:text="${reservaActiva.destino}"></span>
+                                </div>
+
+                                <div>
+                                    <span class="status-pill status-route">
+                                        <i class="fas fa-car me-1"></i>En ruta
+                                    </span>
+
+                                    <span class="status-pill bg-success text-white"
+                                          th:text="${reservaActiva.distanciaKm != null ? reservaActiva.distanciaKm + ' km' : 'Distancia registrada'}">
+                                    </span>
+
+                                    <span class="status-pill bg-warning text-dark"
+                                          th:text="${reservaActiva.tarifa != null ? 'S/ ' + reservaActiva.tarifa : 'Tarifa pendiente'}">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${reservaActiva == null}"
+                         class="map-empty d-flex align-items-center justify-content-center">
+
+                        <div class="text-center text-muted">
+                            <i class="fas fa-car-side fa-4x mb-3"></i>
+                            <h5 class="fw-bold">No tienes viajes en curso</h5>
+                            <p>Cuando el conductor inicie tu traslado, podrás ver la ruta aquí.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-4">
+                <div class="rastreo-card p-4 h-100">
+                    <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">
+                        <i class="fas fa-info-circle me-2"></i>Estado del Viaje
+                    </h5>
+                    
+                    <div th:if="${reservaActiva != null}">
+
+                        <div class="info-box mb-3">
+                            <h6 class="fw-bold mb-1">
+                                <i class="fas fa-user-tie text-primary me-1"></i>
+                                Conductor asignado
+                            </h6>
+
+                            <span th:if="${conductor != null}"
+                                  th:text="${conductor.nombre + ' (ID ' + conductor.id + ')'}">
+                            </span>
+
+                            <span th:if="${conductor == null}"
+                                  th:text="${reservaActiva.conductorId != null ? 'ID Conductor: ' + reservaActiva.conductorId : 'Por asignar'}">
+                            </span>
+                        </div>
+
+                        <div class="route-point">
+                            <div class="route-title text-danger">
+                                <i class="fas fa-map-marker-alt me-1"></i>Origen
+                            </div>
+                            <span th:text="${reservaActiva.origen}"></span>
+                        </div>
+
+                        <div class="route-point">
+                            <div class="route-title text-success">
+                                <i class="fas fa-flag-checkered me-1"></i>Destino
+                            </div>
+                            <span th:text="${reservaActiva.destino}"></span>
+                        </div>
+
+                        <div class="route-point">
+                            <div class="route-title text-primary">
+                                <i class="fas fa-calendar-alt me-1"></i>Fecha del traslado
+                            </div>
+                            <span th:text="${reservaActiva.fechaTraslado != null ? #dates.format(reservaActiva.fechaTraslado, 'dd/MM/yyyy HH:mm') : 'Sin fecha'}"></span>
+                        </div>
+
+                        <div class="route-point">
+                            <div class="route-title text-dark">
+                                <i class="fas fa-car me-1"></i>Tipo de vehículo
+                            </div>
+                            <span th:text="${reservaActiva.tipoVehiculo}"></span>
+                        </div>
+
+                        <div class="route-point">
+                            <div class="route-title text-success">
+                                <i class="fas fa-money-bill-wave me-1"></i>Tarifa
+                            </div>
+                            <span th:text="${reservaActiva.tarifa != null ? 'S/ ' + reservaActiva.tarifa : 'Pendiente'}"></span>
+                        </div>
+
+                        <p class="mb-1 fw-bold text-muted small">
+                            Progreso del traslado
+                        </p>
+
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                 style="width: 55%">
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-2 small text-muted">
+                            Ruta activa visualizada con Google Maps
+                        </div>
+
+                    </div>
+
+                    <div th:if="${reservaActiva == null}" class="text-center py-5 text-muted">
+                        <i class="fas fa-car-side fa-3x mb-3"></i>
+                        <h6 class="fw-bold">Sin viaje activo</h6>
+                        <p>No tienes viajes en curso en este momento.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        let map;
+        let directionsService;
+        let directionsRenderer;
+
+        const origenViaje = /*[[${reservaActiva != null ? reservaActiva.origen : ''}]]*/ "";
+        const destinoViaje = /*[[${reservaActiva != null ? reservaActiva.destino : ''}]]*/ "";
+
+        window.initMap = function () {
+            const centroPeru = { lat: -9.19, lng: -75.0152 };
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 6,
+                center: centroPeru,
+                mapTypeControl: true,
+                streetViewControl: true,
+                fullscreenControl: true
+            });
+
+            directionsService = new google.maps.DirectionsService();
+
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: false,
+                polylineOptions: {
+                    strokeColor: "#2563eb",
+                    strokeOpacity: 0.9,
+                    strokeWeight: 6
+                }
+            });
+
+            calcularRutaActiva();
+        };
+
+        function calcularRutaActiva() {
+            if (!origenViaje || !destinoViaje) {
+                return;
+            }
+
+            const origenFinal = completarDireccion(origenViaje);
+            const destinoFinal = completarDireccion(destinoViaje);
+
+            directionsService.route(
+                {
+                    origin: origenFinal,
+                    destination: destinoFinal,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    region: "PE"
+                },
+                function (response, status) {
+                    if (status === "OK") {
+                        directionsRenderer.setDirections(response);
+                    } else {
+                        mostrarErrorMapa("No se pudo cargar la ruta en Google Maps. Estado: " + status);
+                    }
+                }
+            );
+        }
+
+        function completarDireccion(texto) {
+            if (!texto) {
+                return "";
+            }
+
+            const normalizado = texto.toLowerCase();
+
+            if (normalizado.includes("perú") || normalizado.includes("peru")) {
+                return texto;
+            }
+
+            return texto + ", Perú";
+        }
+
+        function mostrarErrorMapa(mensaje) {
+            const mapa = document.getElementById("map");
+
+            if (mapa) {
+                mapa.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-center h-100 text-center text-muted">
+                        <div>
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                            <h5>No se pudo visualizar la ruta</h5>
+                            <p>${mensaje}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+
+    <script th:if="${reservaActiva != null and googleMapsApiKey != null and googleMapsApiKey != ''}"
+            th:src="'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&libraries=places&callback=initMap'"
+            async defer>
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

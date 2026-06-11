@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="menuAdmin">
+        <style>
+            .sidebar {
+                background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+                color: white;
+                min-height: 100vh;
+                position: fixed;
+                width: 260px;
+                left: 0;
+                top: 0;
+                z-index: 1000;
+                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            }
+            .sidebar-brand {
+                padding: 20px;
+                background: rgba(0,0,0,0.2);
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #4a9eff;
+                text-align: center;
+                letter-spacing: 1px;
+            }
+            .sidebar .nav-link {
+                color: #a0a5b1;
+                padding: 15px 25px;
+                border-left: 4px solid transparent;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+            .sidebar .nav-link:hover, .sidebar .nav-link.active {
+                background: rgba(74, 158, 255, 0.1);
+                color: #ffffff;
+                border-left-color: #4a9eff;
+            }
+            .sidebar .nav-link i {
+                width: 25px;
+                font-size: 1.1rem;
+            }
+            .user-info-sidebar {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                padding: 20px;
+                background: rgba(0,0,0,0.2);
+                border-top: 1px solid rgba(255,255,255,0.05);
+            }
+            .profile-link {
+                text-decoration: none;
+                transition: opacity 0.3s;
+            }
+            .profile-link:hover {
+                opacity: 0.8;
+            }
+            .main-content {
+                margin-left: 260px;
+                background-color: #f4f7f6;
+                min-height: 100vh;
+            }
+            .top-navbar {
+                background: white;
+                padding: 15px 30px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+        </style>
+        
+        <nav class="sidebar d-flex flex-column">
+            <div class="sidebar-brand">
+                <i class="fas fa-truck-moving me-2"></i>LINOMOVE
+            </div>
+            
+            <div class="nav flex-column mt-4">
+                <a class="nav-link" th:href="@{/admin/dashboard}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a class="nav-link" th:href="@{/admin/administradores}"><i class="fas fa-user-shield"></i> Administradores</a>
+                <a class="nav-link" th:href="@{/admin/conductores}"><i class="fas fa-users"></i> Conductores</a>
+                <a class="nav-link" th:href="@{/admin/flota}"><i class="fas fa-truck"></i> Flota</a>
+                <a class="nav-link" th:href="@{/admin/asignacion}"><i class="fas fa-tasks"></i> Asignaciones</a>
+                <a class="nav-link" th:href="@{/admin/pagos}"><i class="fas fa-money-check-alt"></i> Pagos</a>
+                <a class="nav-link" th:href="@{/admin/reportes}"><i class="fas fa-chart-pie"></i> Reportes</a>
+                <a class="nav-link" th:href="@{/admin/soporte}"><i class="fas fa-headset"></i> Soporte</a>
+            </div>
+            
+            <div class="user-info-sidebar">
+                <a th:href="@{/admin/perfil}" class="d-flex align-items-center mb-3 profile-link">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 text-white" th:text="${session.usuarioNombre != null ? session.usuarioNombre : 'Administrador'}">Admin</h6>
+                        <small class="text-info"><i class="fas fa-cog me-1"></i>Mi Perfil</small>
+                    </div>
+                </a>
+                <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm w-100"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a>
+            </div>
+        </nav>
+    </div>
+</body>
+</html>

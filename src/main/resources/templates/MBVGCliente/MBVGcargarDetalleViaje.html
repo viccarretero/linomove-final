@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="detalleModal">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card border-primary h-100">
+                    <div class="card-header bg-primary text-white py-2">
+                        <h6 class="m-0"><i class="fas fa-route me-2"></i>Información del Viaje</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong class="text-danger"><i class="fas fa-map-marker-alt me-1"></i>Origen:</strong> <span th:text="${reserva.origen}"></span></p>
+                        <p class="mb-3"><strong class="text-success"><i class="fas fa-flag-checkered me-1"></i>Destino:</strong> <span th:text="${reserva.destino}"></span></p>
+                        
+                        <hr>
+                        
+                        <p class="mb-1"><strong>Vehículo:</strong> <span class="badge bg-info text-dark" th:text="${reserva.tipoVehiculo}"></span></p>
+                        <p class="mb-1"><strong>Distancia:</strong> <span th:text="${reserva.distanciaKm + ' km'}"></span></p>
+                        <h5 class="text-success mt-2"><strong>Total pagado: S/ <span th:text="${reserva.tarifa}"></span></strong></h5>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card border-warning h-100">
+                    <div class="card-header bg-warning text-dark py-2">
+                        <h6 class="m-0"><i class="fas fa-user-tie me-2"></i>Información del Conductor</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-circle fa-4x text-muted mb-2"></i>
+                        <h5 th:text="${conductor.nombre}">Nombre Conductor</h5>
+                        <p class="mb-1"><i class="fas fa-id-card me-1 text-muted"></i> Licencia: <span th:text="${conductor.licencia}"></span></p>
+                        <p class="mb-0"><i class="fas fa-star text-warning"></i> <span th:text="${conductor.puntuacionPromedio}"></span> / 5.0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

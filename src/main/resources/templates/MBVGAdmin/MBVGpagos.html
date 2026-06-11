@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Validación de Pagos - LinoMove</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            background: #f4f6f9;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+            color: white;
+            padding-top: 20px;
+        }
+
+        .sidebar h3 {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #d1d5db;
+            text-decoration: none;
+            padding: 12px 20px;
+            margin: 5px 12px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #2563eb;
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .page-title {
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .card-main {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .card-header-custom {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 18px 22px;
+        }
+
+        .table th {
+            background: #111827;
+            color: white;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .badge-pendiente {
+            background: #f59e0b;
+            color: #111827;
+            padding: 7px 10px;
+            border-radius: 8px;
+        }
+
+        .empty-state {
+            padding: 70px 20px;
+        }
+
+        .empty-icon {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            background: #dcfce7;
+            color: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px auto;
+            font-size: 36px;
+        }
+
+        .btn-action {
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .modal-header-success {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+        }
+
+        .modal-header-danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+        }
+
+        .payment-summary {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .payment-summary strong {
+            color: #111827;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-2 sidebar">
+            <h3><i class="fas fa-truck me-2"></i>LINOMOVE</h3>
+
+            <a th:href="@{/admin/dashboard}">
+                <i class="fas fa-home me-2"></i>Dashboard
+            </a>
+
+            <a th:href="@{/admin/asignacion}">
+                <i class="fas fa-route me-2"></i>Asignaciones
+            </a>
+
+            <a th:href="@{/admin/conductores}">
+                <i class="fas fa-users me-2"></i>Conductores
+            </a>
+
+            <a th:href="@{/admin/flota}">
+                <i class="fas fa-truck-moving me-2"></i>Flota
+            </a>
+
+            <a th:href="@{/admin/pagos}" class="active">
+                <i class="fas fa-money-check-alt me-2"></i>Pagos
+            </a>
+
+            <a th:href="@{/admin/soporte}">
+                <i class="fas fa-headset me-2"></i>Soporte
+            </a>
+
+            <a th:href="@{/logout}">
+                <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+            </a>
+        </div>
+
+        <div class="col-md-10 content">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title mb-1">
+                        <i class="fas fa-money-check-alt text-success me-2"></i>
+                        Validación de Pagos
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Revisa las transferencias registradas por los clientes antes de marcarlas como completadas.
+                    </p>
+                </div>
+
+                <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+
+            <div th:if="${session.mensajeExito}" class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${session.mensajeExito}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${session.mensajeError}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${session.mensajeError}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card card-main">
+                <div class="card-header-custom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        Pagos pendientes de validación
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <div th:if="${#lists.isEmpty(pagosPendientes)}" class="text-center empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h4 class="fw-bold">No hay pagos pendientes</h4>
+                        <p class="text-muted mb-0">
+                            Cuando un cliente registre una transferencia, aparecerá aquí.
+                        </p>
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(pagosPendientes)}" class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>ID Pago</th>
+                                <th>ID Reserva</th>
+                                <th>Monto</th>
+                                <th>Método</th>
+                                <th>Nro. Operación</th>
+                                <th>Código</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <tr th:each="pago : ${pagosPendientes}">
+                                <td th:text="${pago.id}"></td>
+                                <td th:text="${pago.reservaId}"></td>
+                                <td class="fw-bold text-success" th:text="${'S/ ' + pago.monto}"></td>
+                                <td th:text="${pago.metodoPago}"></td>
+                                <td th:text="${pago.transaccionId}"></td>
+                                <td th:text="${pago.codigoConfirmacion}"></td>
+                                <td>
+                                    <span class="badge badge-pendiente" th:text="${pago.estado}"></span>
+                                </td>
+
+                                <td class="text-center">
+
+                                    <button type="button"
+                                            class="btn btn-success btn-sm btn-action"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalAprobar"
+                                            th:data-pago-id="${pago.id}"
+                                            th:data-reserva-id="${pago.reservaId}"
+                                            th:data-monto="${pago.monto}"
+                                            th:data-operacion="${pago.transaccionId}">
+                                        <i class="fas fa-check me-1"></i>Aprobar
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm btn-action"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalRechazar"
+                                            th:data-pago-id="${pago.id}"
+                                            th:data-reserva-id="${pago.reservaId}"
+                                            th:data-monto="${pago.monto}"
+                                            th:data-operacion="${pago.transaccionId}">
+                                        <i class="fas fa-times me-1"></i>Rechazar
+                                    </button>
+
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAprobar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+
+            <div class="modal-header modal-header-success">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-check-circle me-2"></i>Confirmar aprobación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form th:action="@{/admin/pagos/aprobar}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="pagoId" id="pagoIdAprobar">
+
+                    <p class="mb-3">
+                        ¿Confirmas que esta transferencia fue validada correctamente?
+                    </p>
+
+                    <div class="payment-summary">
+                        <p class="mb-1"><strong>ID Pago:</strong> <span id="aprobarPagoTexto"></span></p>
+                        <p class="mb-1"><strong>ID Reserva:</strong> <span id="aprobarReservaTexto"></span></p>
+                        <p class="mb-1"><strong>Monto:</strong> S/ <span id="aprobarMontoTexto"></span></p>
+                        <p class="mb-0"><strong>Nro. Operación:</strong> <span id="aprobarOperacionTexto"></span></p>
+                    </div>
+
+                    <small class="text-muted d-block mt-3">
+                        Al aprobar, el pago pasará a estado completado.
+                    </small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>Sí, aprobar pago
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRechazar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+
+            <div class="modal-header modal-header-danger">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-times-circle me-2"></i>Confirmar rechazo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form th:action="@{/admin/pagos/rechazar}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="pagoId" id="pagoIdRechazar">
+
+                    <p class="mb-3">
+                        ¿Seguro que deseas rechazar esta transferencia?
+                    </p>
+
+                    <div class="payment-summary">
+                        <p class="mb-1"><strong>ID Pago:</strong> <span id="rechazarPagoTexto"></span></p>
+                        <p class="mb-1"><strong>ID Reserva:</strong> <span id="rechazarReservaTexto"></span></p>
+                        <p class="mb-1"><strong>Monto:</strong> S/ <span id="rechazarMontoTexto"></span></p>
+                        <p class="mb-0"><strong>Nro. Operación:</strong> <span id="rechazarOperacionTexto"></span></p>
+                    </div>
+
+                    <small class="text-muted d-block mt-3">
+                        Al rechazar, el pago quedará marcado como rechazado.
+                    </small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>Sí, rechazar pago
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const modalAprobar = document.getElementById('modalAprobar');
+
+    modalAprobar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+
+        const pagoId = button.getAttribute('data-pago-id');
+        const reservaId = button.getAttribute('data-reserva-id');
+        const monto = button.getAttribute('data-monto');
+        const operacion = button.getAttribute('data-operacion');
+
+        document.getElementById('pagoIdAprobar').value = pagoId;
+        document.getElementById('aprobarPagoTexto').textContent = pagoId;
+        document.getElementById('aprobarReservaTexto').textContent = reservaId;
+        document.getElementById('aprobarMontoTexto').textContent = monto;
+        document.getElementById('aprobarOperacionTexto').textContent = operacion;
+    });
+
+    const modalRechazar = document.getElementById('modalRechazar');
+
+    modalRechazar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+
+        const pagoId = button.getAttribute('data-pago-id');
+        const reservaId = button.getAttribute('data-reserva-id');
+        const monto = button.getAttribute('data-monto');
+        const operacion = button.getAttribute('data-operacion');
+
+        document.getElementById('pagoIdRechazar').value = pagoId;
+        document.getElementById('rechazarPagoTexto').textContent = pagoId;
+        document.getElementById('rechazarReservaTexto').textContent = reservaId;
+        document.getElementById('rechazarMontoTexto').textContent = monto;
+        document.getElementById('rechazarOperacionTexto').textContent = operacion;
+    });
+</script>
+
+</body>
+</html>

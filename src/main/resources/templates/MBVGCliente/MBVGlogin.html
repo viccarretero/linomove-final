@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Cliente - Linomove</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
+
+    <style>
+        .client-login-bg {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .transport-decoration {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .bus-icon {
+            top: 10%;
+            left: 5%;
+            font-size: 80px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .car-icon {
+            bottom: 15%;
+            right: 8%;
+            font-size: 60px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .route-icon {
+            top: 50%;
+            left: 10%;
+            font-size: 70px;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            height: 120px;
+        }
+
+        .client-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -42px auto 25px;
+            border: 5px solid white;
+            z-index: 5;
+        }
+
+        .btn-client {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="client-login-bg">
+
+<div class="transport-decoration bus-icon"><i class="fas fa-bus"></i></div>
+<div class="transport-decoration car-icon"><i class="fas fa-car"></i></div>
+<div class="transport-decoration route-icon"><i class="fas fa-route"></i></div>
+
+<div class="container">
+    <div class="text-center text-white mb-4 position-relative" style="z-index: 5;">
+        <h1 class="fw-bold">
+            <i class="fas fa-shipping-fast me-3"></i>Linomove
+        </h1>
+        <p>Tu solución de transporte confiable</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card login-card">
+                <div class="card-header-custom"></div>
+
+                <div class="card-body px-5 pb-5">
+                    <div class="client-icon">
+                        <i class="fas fa-user text-white fa-2x"></i>
+                    </div>
+
+                    <h3 class="text-center mb-1 fw-bold" style="color: #1e3c72;">
+                        Portal de Clientes
+                    </h3>
+                    <p class="text-center text-muted mb-3">
+                        Accede a tus servicios de transporte
+                    </p>
+
+                    <div th:if="${param.error}" class="alert alert-danger text-center">
+                        Credenciales inválidas. Intente nuevamente.
+                    </div>
+
+                    <div th:if="${param.captcha}" class="alert alert-warning text-center">
+                        Debes completar la verificación reCAPTCHA.
+                    </div>
+
+                    <div th:if="${param.registro}" class="alert alert-success text-center">
+                        Registro exitoso, por favor inicie sesión.
+                    </div>
+
+                    <form th:action="@{/procesar-login}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-envelope me-2" style="color: #2a5298;"></i>Correo Electrónico
+                            </label>
+                            <input type="email" class="form-control" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-lock me-2" style="color: #2a5298;"></i>Contraseña
+                            </label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+
+                        <input type="hidden" name="tipoUsuario" value="cliente">
+
+                        <div class="d-flex justify-content-center mb-3 mt-3">
+                            <div class="g-recaptcha"
+                                 th:attr="data-sitekey=${recaptchaSiteKey}"
+                                 data-action="LOGIN">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3 mt-4">
+                            <button type="submit" class="btn btn-client">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3 border-top pt-3">
+                        <a th:href="@{/registro}" class="btn btn-outline-primary btn-sm me-2">
+                            <i class="fas fa-user-plus me-1"></i>Crear Cuenta
+                        </a>
+                        <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

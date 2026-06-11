@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del Conductor - Linomove</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding-bottom: 40px; }
+        .dashboard-header { background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .stat-card { border-radius: 15px; border: none; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .bg-gradient-success { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+        .bg-gradient-warning { background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%); }
+        .bg-gradient-danger { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .viaje-card { border-radius: 18px; border: none; box-shadow: 0 4px 18px rgba(0,0,0,0.15); overflow: hidden; }
+        .viaje-header { background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: white; }
+        .info-box { background: #f8f9fa; border-radius: 12px; padding: 14px; height: 100%; }
+        .estado-badge { font-size: 0.95rem; padding: 8px 12px; border-radius: 20px; }
+    </style>
+</head>
+<body class="d-flex flex-column">
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="dashboard-header p-4 mb-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 shadow" style="width: 60px; height: 60px;">
+                    <i class="fas fa-user-tie fa-2x text-white"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 text-dark fw-bold">Panel del Conductor</h4>
+                    <p class="text-muted mb-0">
+                        Bienvenido de vuelta, <span th:text="${session.usuarioNombre}"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="text-end">
+                <h6 class="mb-1 fw-bold text-dark" th:text="${session.usuarioNombre}"></h6>
+                <small class="text-muted d-block mb-2">
+                    <i class="fas fa-id-card me-1"></i>Conductor Autorizado
+                </small>
+                <a th:href="@{/conductor/perfil}" class="btn btn-outline-primary btn-sm me-2">
+                    <i class="fas fa-cog me-1"></i>Mi Perfil
+                </a>
+                <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        <div th:if="${param.exito}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${param.exito}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span th:text="${param.error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Tarjetas resumen -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card text-white h-100 p-2"
+                     th:classappend="${conductor.estado == 'disponible' ? 'bg-gradient-success' : (conductor.estado == 'ocupado' ? 'bg-gradient-warning' : 'bg-gradient-danger')}">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h3 class="fw-bold mb-1">
+                                <span th:text="${#strings.capitalize(conductor.estado)}"></span>
+                                <i class="fas fa-check-circle float-end" th:if="${conductor.estado == 'disponible'}"></i>
+                                <i class="fas fa-car-side float-end" th:if="${conductor.estado == 'ocupado'}"></i>
+                                <i class="fas fa-minus-circle float-end" th:if="${conductor.estado == 'inactivo'}"></i>
+                            </h3>
+                            <p class="mb-3 opacity-75">Estado actual en el sistema</p>
+                        </div>
+
+                        <form th:action="@{/conductor/cambiar-estado}" method="post">
+                            <button type="submit"
+                                    class="btn btn-light w-100 text-dark fw-bold shadow-sm"
+                                    th:disabled="${viajeActivo != null}">
+                                <i class="fas fa-sync-alt me-2"></i>Cambiar Estado
+                            </button>
+                        </form>
+
+                        <small class="mt-2 d-block opacity-75" th:if="${viajeActivo != null}">
+                            No puedes cambiar tu estado mientras tienes un viaje activo.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card stat-card bg-white h-100 p-3 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-route fa-2x text-primary mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0" th:text="${viajesMes}">0</h2>
+                        <p class="text-muted">Viajes este Mes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card stat-card bg-white h-100 p-3 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0" th:text="${conductor.puntuacionPromedio}">5.0</h2>
+                        <p class="text-muted">Calificación</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Viaje activo -->
+        <div class="card viaje-card mb-4" th:if="${viajeActivo != null}">
+            <div class="viaje-header p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1 fw-bold">
+                        <i class="fas fa-truck-moving me-2"></i>Viaje Activo
+                    </h4>
+                    <p class="mb-0 opacity-75">Gestiona el traslado asignado por el administrador.</p>
+                </div>
+
+                <span class="badge estado-badge"
+                      th:classappend="${viajeActivo.estado == 'asignada' ? ' bg-warning text-dark' : ' bg-info text-dark'}"
+                      th:text="${viajeActivo.estado == 'asignada' ? 'Asignado' : 'En ruta'}">
+                </span>
+            </div>
+
+            <div class="card-body p-4 bg-white">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-map-marker-alt text-success me-1"></i>Origen
+                            </small>
+                            <h5 class="fw-bold mb-0" th:text="${viajeActivo.origen}">Origen</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-flag-checkered text-danger me-1"></i>Destino
+                            </small>
+                            <h5 class="fw-bold mb-0" th:text="${viajeActivo.destino}">Destino</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="info-box text-center">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-road text-primary me-1"></i>Distancia
+                            </small>
+                            <h5 class="fw-bold mb-0">
+                                <span th:text="${viajeActivo.distanciaKm != null ? viajeActivo.distanciaKm : 0}"></span> km
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="info-box text-center">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-money-bill-wave text-success me-1"></i>Tarifa
+                            </small>
+                            <h5 class="fw-bold mb-0">
+                                S/ <span th:text="${viajeActivo.tarifa != null ? viajeActivo.tarifa : 0}"></span>
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="info-box text-center">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-calendar-alt text-secondary me-1"></i>Fecha traslado
+                            </small>
+                            <h6 class="fw-bold mb-0" th:text="${#dates.format(viajeActivo.fechaTraslado, 'dd/MM/yyyy HH:mm')}">
+                                Fecha
+                            </h6>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="info-box text-center">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-car text-dark me-1"></i>Tipo vehículo
+                            </small>
+                            <h6 class="fw-bold mb-0" th:text="${viajeActivo.tipoVehiculo}">Tipo</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${viajeActivo.observaciones != null and !#strings.isEmpty(viajeActivo.observaciones)}"
+                     class="alert alert-secondary">
+                    <strong><i class="fas fa-comment-dots me-1"></i>Observaciones:</strong>
+                    <span th:text="${viajeActivo.observaciones}"></span>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <form th:if="${viajeActivo.estado == 'asignada'}"
+                          th:action="@{/conductor/viaje/iniciar/{id}(id=${viajeActivo.id})}"
+                          method="post"
+                          class="w-100">
+                        <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">
+                            <i class="fas fa-play-circle me-2"></i>Iniciar Viaje
+                        </button>
+                    </form>
+
+                    <form th:if="${viajeActivo.estado == 'en_ruta'}"
+                          th:action="@{/conductor/viaje/finalizar/{id}(id=${viajeActivo.id})}"
+                          method="post"
+                          class="w-100">
+                        <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold">
+                            <i class="fas fa-stop-circle me-2"></i>Finalizar Viaje
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sin viaje activo -->
+        <div class="card viaje-card mb-4" th:if="${viajeActivo == null}">
+            <div class="card-body text-center p-5 bg-white">
+                <i class="fas fa-clipboard-check fa-4x text-muted mb-3"></i>
+                <h4 class="fw-bold text-dark">No tienes viajes activos</h4>
+                <p class="text-muted mb-0">
+                    Cuando el administrador te asigne un traslado, aparecerá aquí con las acciones disponibles.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

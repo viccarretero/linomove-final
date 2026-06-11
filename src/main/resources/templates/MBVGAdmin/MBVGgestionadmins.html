@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Administradores - Linomove</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{MBVGComponentes/MBVGmenu :: menuAdmin}"></div>
+
+    <div class="main-content">
+        <div class="top-navbar mb-4">
+            <h4 class="mb-0 text-dark fw-bold">
+                <i class="fas fa-user-shield me-2 text-primary"></i>Gestión de Administradores
+            </h4>
+            <div class="text-muted">
+                <i class="fas fa-calendar-alt me-2"></i>
+                <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy')}"></span>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            <div th:if="${param.exito}" class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${param.exito}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${param.error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="d-flex justify-content-end mb-3">
+                <button th:if="${miNivel == 'SUPERADMIN'}"
+                        class="btn btn-primary shadow-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalNuevoAdmin">
+                    <i class="fas fa-plus me-1"></i>Nuevo Administrador
+                </button>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Nivel de Acceso</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr th:each="admin : ${administradores}">
+                                    <td th:text="${'#' + admin.id}"></td>
+
+                                    <td>
+                                        <span class="fw-bold" th:text="${admin.nombre}"></span>
+                                        <span th:if="${admin.id == miId}" class="badge bg-secondary ms-1">Tú</span>
+                                    </td>
+
+                                    <td th:text="${admin.email}"></td>
+
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${admin.nivelAcceso == 'SUPERADMIN' ? 'bg-danger' : 'bg-primary'}"
+                                              th:text="${admin.nivelAcceso}">
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-success" th:if="${admin.estado == 'activo'}">Activo</span>
+                                        <span class="badge bg-secondary" th:if="${admin.estado != 'activo'}" th:text="${admin.estado}"></span>
+                                    </td>
+
+                                    <td>
+                                        <button th:if="${miNivel == 'SUPERADMIN' or admin.nivelAcceso != 'SUPERADMIN' or admin.id == miId}"
+                                                class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#modalEditarAdmin' + ${admin.id}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
+                                        <button th:unless="${miNivel == 'SUPERADMIN' or admin.nivelAcceso != 'SUPERADMIN' or admin.id == miId}"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                disabled
+                                                title="No tienes permisos para editar a un SUPERADMIN">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
+                                        <a th:if="${miNivel == 'SUPERADMIN' and admin.id != miId}"
+                                           th:href="@{/admin/administradores/eliminar(id=${admin.id})}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('¿Estás seguro de que deseas eliminar este administrador?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+
+                                        <button th:unless="${miNivel == 'SUPERADMIN' and admin.id != miId}"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                disabled
+                                                th:title="${admin.id == miId ? 'No puedes eliminarte a ti mismo' : 'Solo un SUPERADMIN puede eliminar'}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(administradores)}">
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        No hay administradores registrados.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Administrador -->
+    <div th:if="${miNivel == 'SUPERADMIN'}" class="modal fade" id="modalNuevoAdmin" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0">
+
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Registrar Personal
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form th:action="@{/admin/administradores/crear}" method="post">
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" name="nombre" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email de la Empresa</label>
+                            <input type="email" class="form-control" name="email" required placeholder="ejemplo@linomove.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" name="telefono">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nivel de Acceso</label>
+                            <select class="form-select" name="nivelAcceso" required>
+                                <option value="ADMIN">Administrador Standard</option>
+                                <option value="SUPERADMIN">Super Administrador</option>
+                            </select>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="text-primary">
+                            <i class="fas fa-key me-1"></i>Credenciales de acceso
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" name="password" minlength="6" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" name="confirmarPassword" minlength="6" required>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-dark">
+                            Crear Cuenta
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales Editar Administrador -->
+    <th:block th:each="admin : ${administradores}">
+        <div class="modal fade" th:id="'modalEditarAdmin' + ${admin.id}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>Editar Administrador
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <form th:action="@{/admin/administradores/editar}" method="post">
+                        <input type="hidden" name="id" th:value="${admin.id}">
+
+                        <div class="modal-body">
+
+                            <div class="mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" name="nombre" th:value="${admin.nombre}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" th:value="${admin.email}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" name="telefono" th:value="${admin.telefono}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nivel de Acceso</label>
+
+                                <select th:if="${miNivel == 'SUPERADMIN'}" class="form-select" name="nivelAcceso" required>
+                                    <option value="ADMIN" th:selected="${admin.nivelAcceso == 'ADMIN'}">
+                                        Administrador Standard
+                                    </option>
+                                    <option value="SUPERADMIN" th:selected="${admin.nivelAcceso == 'SUPERADMIN'}">
+                                        Super Administrador
+                                    </option>
+                                </select>
+
+                                <th:block th:unless="${miNivel == 'SUPERADMIN'}">
+                                    <input type="hidden" name="nivelAcceso" th:value="${admin.nivelAcceso}">
+                                    <input type="text"
+                                           class="form-control bg-light"
+                                           th:value="${admin.nivelAcceso == 'SUPERADMIN' ? 'Super Administrador' : 'Administrador Standard'}"
+                                           disabled>
+                                    <small class="text-muted">
+                                        Solo un Super Administrador puede modificar los roles.
+                                    </small>
+                                </th:block>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" name="estado" required>
+                                    <option value="activo" th:selected="${admin.estado == 'activo'}">Activo</option>
+                                    <option value="inactivo" th:selected="${admin.estado == 'inactivo'}">Inactivo</option>
+                                </select>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="text-primary">
+                                <i class="fas fa-key me-1"></i>Actualizar contraseña
+                            </h6>
+
+                            <div class="alert alert-light border small">
+                                Deja estos campos vacíos si no deseas cambiar la contraseña.
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nueva Contraseña</label>
+                                <input type="password" class="form-control" name="nuevaPassword" minlength="6">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Confirmar Nueva Contraseña</label>
+                                <input type="password" class="form-control" name="confirmarPassword" minlength="6">
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-warning text-dark fw-bold">
+                                Actualizar Datos
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

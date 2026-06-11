@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Conductores - Linomove</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{MBVGComponentes/MBVGmenu :: menuAdmin}"></div>
+
+    <div class="main-content">
+        <div class="top-navbar mb-4">
+            <h4 class="mb-0 text-dark fw-bold">
+                <i class="fas fa-users me-2 text-primary"></i>Gestión de Conductores
+            </h4>
+            <div class="text-muted">
+                <i class="fas fa-calendar-alt me-2"></i>
+                <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy')}"></span>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            <div th:if="${param.exito}" class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${param.exito}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${param.error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoConductor">
+                    <i class="fas fa-plus me-1"></i>Nuevo Conductor
+                </button>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Vehículo</th>
+                                    <th>Puntuación</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr th:each="conductor : ${conductores}">
+                                    <td th:text="${'#' + conductor.id}"></td>
+                                    <td th:text="${conductor.nombre}"></td>
+                                    <td th:text="${conductor.email}"></td>
+
+                                    <td>
+                                        <span class="badge bg-info text-dark" th:text="${conductor.tipoVehiculo}"></span>
+                                    </td>
+
+                                    <td>
+                                        <i class="fas fa-star text-warning me-1"></i>
+                                        <span th:text="${conductor.puntuacionPromedio}"></span>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${
+                                                conductor.estado == 'disponible' ? 'bg-success' :
+                                                (conductor.estado == 'ocupado' ? 'bg-warning text-dark' : 'bg-danger')
+                                              }"
+                                              th:text="${conductor.estado}">
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#modalEditarConductor' + ${conductor.id}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
+                                        <a th:href="@{/admin/conductores/eliminar(id=${conductor.id})}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('¿Estás seguro de que deseas eliminar este conductor de la base de datos?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(conductores)}">
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        No hay conductores registrados.
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Conductor -->
+    <div class="modal fade" id="modalNuevoConductor" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Registrar Conductor
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form th:action="@{/admin/conductores/crear}" method="post">
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" class="form-control" name="nombre" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" name="telefono" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Licencia</label>
+                            <input type="text" class="form-control" name="licencia" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Vehículo que maneja</label>
+                            <select class="form-select" name="tipoVehiculo" required>
+                                <option value="economico">Económico</option>
+                                <option value="comfort">Confort</option>
+                                <option value="premium">Premium</option>
+                                <option value="suv">SUV</option>
+                            </select>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="text-primary">
+                            <i class="fas fa-key me-1"></i>Credenciales de acceso
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" name="password" minlength="6" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" name="confirmarPassword" minlength="6" required>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Guardar Conductor
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales Editar Conductor -->
+    <th:block th:each="conductor : ${conductores}">
+        <div class="modal fade" th:id="'modalEditarConductor' + ${conductor.id}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>Editar Conductor
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <form th:action="@{/admin/conductores/editar}" method="post">
+                        <input type="hidden" name="id" th:value="${conductor.id}">
+
+                        <div class="modal-body">
+
+                            <div class="mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" name="nombre" th:value="${conductor.nombre}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" th:value="${conductor.email}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" name="telefono" th:value="${conductor.telefono}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Licencia</label>
+                                <input type="text" class="form-control" name="licencia" th:value="${conductor.licencia}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Vehículo</label>
+                                <select class="form-select" name="tipoVehiculo" required>
+                                    <option value="economico" th:selected="${conductor.tipoVehiculo == 'economico'}">Económico</option>
+                                    <option value="comfort" th:selected="${conductor.tipoVehiculo == 'comfort'}">Confort</option>
+                                    <option value="premium" th:selected="${conductor.tipoVehiculo == 'premium'}">Premium</option>
+                                    <option value="suv" th:selected="${conductor.tipoVehiculo == 'suv'}">SUV</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" name="estado" required>
+                                    <option value="disponible" th:selected="${conductor.estado == 'disponible'}">Disponible</option>
+                                    <option value="ocupado" th:selected="${conductor.estado == 'ocupado'}">Ocupado</option>
+                                    <option value="inactivo" th:selected="${conductor.estado == 'inactivo'}">Inactivo</option>
+                                </select>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="text-primary">
+                                <i class="fas fa-key me-1"></i>Actualizar contraseña
+                            </h6>
+
+                            <div class="alert alert-light border small">
+                                Deja estos campos vacíos si no deseas cambiar la contraseña.
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nueva Contraseña</label>
+                                <input type="password" class="form-control" name="nuevaPassword" minlength="6">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Confirmar Nueva Contraseña</label>
+                                <input type="password" class="form-control" name="confirmarPassword" minlength="6">
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-warning text-dark fw-bold">
+                                Actualizar Datos
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </th:block>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

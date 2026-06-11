@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil - Conductor Linomove</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding-bottom: 40px; }
+        .profile-container { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .profile-header { background: #f8f9fa; border-bottom: 1px solid #e9ecef; }
+    </style>
+</head>
+<body class="d-flex flex-column">
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 text-white">
+            <h3 class="fw-bold m-0"><i class="fas fa-user-circle me-2"></i>Configuración de Cuenta</h3>
+            <a th:href="@{/conductor/dashboard}" class="btn btn-outline-light"><i class="fas fa-arrow-left me-2"></i>Volver al Panel</a>
+        </div>
+
+        <div class="profile-container">
+            <!-- Alertas -->
+            <div th:if="${param.exito}" class="alert alert-success alert-dismissible fade show m-4 shadow-sm">
+                <i class="fas fa-check-circle me-2"></i><span th:text="${param.exito}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show m-4 shadow-sm">
+                <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${param.error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="row g-0">
+                <!-- Columna Izquierda: Datos Personales -->
+                <div class="col-md-6 border-end p-4 p-md-5">
+                    <h5 class="text-primary fw-bold border-bottom pb-3 mb-4"><i class="fas fa-id-card me-2"></i>Información Personal</h5>
+                    <form th:action="@{/conductor/perfil/actualizar}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-bold small">Nombre Completo</label>
+                            <input type="text" class="form-control" name="nombre" th:value="${conductor.nombre}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-bold small">Correo Electrónico</label>
+                            <input type="email" class="form-control" name="email" th:value="${conductor.email}" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted fw-bold small">Teléfono Móvil</label>
+                            <input type="text" class="form-control" name="telefono" th:value="${conductor.telefono}" required>
+                        </div>
+                        
+                        <!-- Campos bloqueados que solo el admin puede cambiar -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="form-label text-muted fw-bold small">Licencia</label>
+                                <input type="text" class="form-control bg-light" th:value="${conductor.licencia}" disabled>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-muted fw-bold small">Categoría Vehículo</label>
+                                <input type="text" class="form-control bg-light text-uppercase" th:value="${conductor.tipoVehiculo}" disabled>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="fas fa-save me-2"></i>Guardar Cambios</button>
+                    </form>
+                </div>
+
+                <!-- Columna Derecha: Seguridad y Contraseña -->
+                <div class="col-md-6 p-4 p-md-5 bg-light">
+                    <h5 class="text-danger fw-bold border-bottom pb-3 mb-4"><i class="fas fa-shield-alt me-2"></i>Seguridad de la Cuenta</h5>
+                    
+                    <div class="alert alert-warning small border-0 shadow-sm mb-4">
+                        <i class="fas fa-info-circle me-2"></i>Si acabas de unirte a Linomove, por favor cambia la contraseña temporal proporcionada por el administrador.
+                    </div>
+
+                    <form th:action="@{/conductor/perfil/password}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label text-muted fw-bold small">Contraseña Actual</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                <input type="password" class="form-control border-start-0" name="passwordActual" placeholder="Ingresa tu clave actual" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-success fw-bold small">Nueva Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-key text-success"></i></span>
+                                <input type="password" class="form-control border-start-0" name="nuevaPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100 fw-bold py-2"><i class="fas fa-key me-2"></i>Actualizar Contraseña</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

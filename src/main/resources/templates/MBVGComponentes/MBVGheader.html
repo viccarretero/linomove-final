@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <nav th:fragment="headerPrincipal" class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <strong>🚗 LINOMOVE</strong>
+                <small class="text-light" th:if="${session.tipoUsuario != null}" th:text="' - ' + ${session.tipoUsuario}"></small>
+            </a>
+            
+            <div class="navbar-nav ms-auto" th:if="${session.usuarioNombre != null}">
+                <span class="navbar-text me-3">
+                    Bienvenido, <strong th:text="${session.usuarioNombre}">Usuario</strong>
+                </span>
+                <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+</body>
+</html>
