@@ -144,6 +144,10 @@
                                 </div>
                             </div>
                         </div>
+                                                <div class="alert alert-info mt-3 mb-0" id="estadoUbicacionConductor">
+                            <i class="fas fa-satellite-dish me-1"></i>
+                            Esperando ubicación actual del conductor...
+                        </div>
                     </div>
 
                     <div th:if="${reservaActiva == null}"
@@ -249,6 +253,9 @@
         let map;
         let directionsService;
         let directionsRenderer;
+        let marcadorConductor;
+        let infoConductor;
+        let primeraUbicacionConductor = true;
 
         const origenViaje = /*[[${reservaActiva != null ? reservaActiva.origen : ''}]]*/ "";
         const destinoViaje = /*[[${reservaActiva != null ? reservaActiva.destino : ''}]]*/ "";
@@ -277,6 +284,7 @@
             });
 
             calcularRutaActiva();
+            iniciarRastreoConductor();
         };
 
         function calcularRutaActiva() {
@@ -302,6 +310,76 @@
                     }
                 }
             );
+        }
+
+        function iniciarRastreoConductor() {
+            consultarUbicacionConductor();
+
+            setInterval(function () {
+                consultarUbicacionConductor();
+            }, 5000);
+        }
+
+        function consultarUbicacionConductor() {
+            fetch("/cliente/rastreo/ubicacion")
+                .then(response => response.json())
+                .then(data => {
+                    const estado = document.getElementById("estadoUbicacionConductor");
+
+                    if (!data.disponible) {
+                        if (estado) {
+                            estado.className = "alert alert-warning mt-3 mb-0";
+                            estado.innerHTML = `<i class="fas fa-clock me-1"></i>${data.mensaje}`;
+                        }
+                        return;
+                    }
+
+                    const posicionConductor = {
+                        lat: data.latitud,
+                        lng: data.longitud
+                    };
+
+                    if (!marcadorConductor) {
+                        marcadorConductor = new google.maps.Marker({
+                            position: posicionConductor,
+                            map: map,
+                            title: "Ubicación actual del conductor",
+                            label: "C"
+                        });
+
+                        infoConductor = new google.maps.InfoWindow({
+                            content: `<strong>${data.conductor}</strong><br>Ubicación actual del conductor`
+                        });
+
+                        marcadorConductor.addListener("click", function () {
+                            infoConductor.open(map, marcadorConductor);
+                        });
+                    } else {
+                        marcadorConductor.setPosition(posicionConductor);
+                    }
+
+                    if (primeraUbicacionConductor) {
+                        map.panTo(posicionConductor);
+                        map.setZoom(14);
+                        primeraUbicacionConductor = false;
+                    }
+
+                    if (estado) {
+                        estado.className = "alert alert-success mt-3 mb-0";
+                        estado.innerHTML = `
+                            <i class="fas fa-location-arrow me-1"></i>
+                            Ubicación del conductor actualizada en tiempo real.
+                        `;
+                    }
+                })
+                .catch(() => {
+                    const estado = document.getElementById("estadoUbicacionConductor");
+
+                    if (estado) {
+                        estado.className = "alert alert-danger mt-3 mb-0";
+                        estado.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>No se pudo consultar la ubicación del conductor.`;
+                    }
+                });
         }
 
         function completarDireccion(texto) {

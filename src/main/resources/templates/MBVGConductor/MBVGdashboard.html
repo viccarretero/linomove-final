@@ -6,6 +6,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+                #driverMap {
+            width: 100%;
+            height: 360px;
+            border-radius: 14px;
+            border: 1px solid #dbeafe;
+            background: #e9ecef;
+        }
+
+        .gps-box {
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 15px;
+        }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding-bottom: 40px; }
         .dashboard-header { background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .stat-card { border-radius: 15px; border: none; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -197,6 +212,22 @@
                     <strong><i class="fas fa-comment-dots me-1"></i>Observaciones:</strong>
                     <span th:text="${viajeActivo.observaciones}"></span>
                 </div>
+                                <div th:if="${viajeActivo.estado == 'en_ruta'}" class="mb-4">
+                    <div class="gps-box">
+                        <h6 class="fw-bold text-primary mb-1">
+                            <i class="fas fa-location-arrow me-1"></i>
+                            Rastreo GPS activo
+                        </h6>
+                        <p class="mb-1 small text-muted">
+                            Mantén esta página abierta en tu celular para compartir tu ubicación con el cliente.
+                        </p>
+                        <small id="gpsEstado" class="text-secondary">
+                            Esperando permiso de ubicación...
+                        </small>
+                    </div>
+
+                    <div id="driverMap"></div>
+                </div>
 
                 <div class="d-flex gap-3">
                     <form th:if="${viajeActivo.estado == 'asignada'}"
@@ -232,6 +263,157 @@
         </div>
 
     </div>
+        <script th:inline="javascript">
+        let driverMap;
+        let driverMarker;
+        let driverDirectionsService;
+        let driverDirectionsRenderer;
+        let gpsWatchId = null;
+
+        const estadoViajeConductor = /*[[${viajeActivo != null ? viajeActivo.estado : ''}]]*/ "";
+        const origenConductor = /*[[${viajeActivo != null ? viajeActivo.origen : ''}]]*/ "";
+        const destinoConductor = /*[[${viajeActivo != null ? viajeActivo.destino : ''}]]*/ "";
+
+        window.initDriverMap = function () {
+            if (estadoViajeConductor !== "en_ruta") {
+                return;
+            }
+
+            const centroPeru = { lat: -9.19, lng: -75.0152 };
+
+            driverMap = new google.maps.Map(document.getElementById("driverMap"), {
+                zoom: 6,
+                center: centroPeru,
+                mapTypeControl: true,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            driverDirectionsService = new google.maps.DirectionsService();
+
+            driverDirectionsRenderer = new google.maps.DirectionsRenderer({
+                map: driverMap,
+                suppressMarkers: false,
+                polylineOptions: {
+                    strokeColor: "#2563eb",
+                    strokeOpacity: 0.9,
+                    strokeWeight: 6
+                }
+            });
+
+            calcularRutaConductor();
+            iniciarEnvioGPS();
+        };
+
+        function calcularRutaConductor() {
+            if (!origenConductor || !destinoConductor) {
+                return;
+            }
+
+            driverDirectionsService.route(
+                {
+                    origin: completarDireccionConductor(origenConductor),
+                    destination: completarDireccionConductor(destinoConductor),
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    region: "PE"
+                },
+                function (response, status) {
+                    if (status === "OK") {
+                        driverDirectionsRenderer.setDirections(response);
+                    }
+                }
+            );
+        }
+
+        function completarDireccionConductor(texto) {
+            if (!texto) {
+                return "";
+            }
+
+            const normalizado = texto.toLowerCase();
+
+            if (normalizado.includes("perú") || normalizado.includes("peru")) {
+                return texto;
+            }
+
+            return texto + ", Perú";
+        }
+
+        function iniciarEnvioGPS() {
+            const estado = document.getElementById("gpsEstado");
+
+            if (!navigator.geolocation) {
+                if (estado) {
+                    estado.innerText = "Tu navegador no permite geolocalización.";
+                    estado.className = "text-danger";
+                }
+                return;
+            }
+
+            gpsWatchId = navigator.geolocation.watchPosition(
+                function (posicion) {
+                    const latitud = posicion.coords.latitude;
+                    const longitud = posicion.coords.longitude;
+                    const posicionActual = { lat: latitud, lng: longitud };
+
+                    if (!driverMarker) {
+                        driverMarker = new google.maps.Marker({
+                            position: posicionActual,
+                            map: driverMap,
+                            title: "Mi ubicación actual",
+                            label: "YO"
+                        });
+
+                        driverMap.setCenter(posicionActual);
+                        driverMap.setZoom(15);
+                    } else {
+                        driverMarker.setPosition(posicionActual);
+                    }
+
+                    enviarUbicacionServidor(latitud, longitud);
+
+                    if (estado) {
+                        estado.innerText = "Ubicación compartida correctamente con el cliente.";
+                        estado.className = "text-success";
+                    }
+                },
+                function () {
+                    if (estado) {
+                        estado.innerText = "Debes permitir el acceso a tu ubicación para activar el rastreo.";
+                        estado.className = "text-danger";
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 10000
+                }
+            );
+        }
+
+        function enviarUbicacionServidor(latitud, longitud) {
+            fetch("/conductor/viaje/ubicacion", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "latitud=" + encodeURIComponent(latitud) + "&longitud=" + encodeURIComponent(longitud)
+            })
+            .then(response => response.json())
+            .catch(() => {
+                const estado = document.getElementById("gpsEstado");
+                if (estado) {
+                    estado.innerText = "No se pudo enviar la ubicación al servidor.";
+                    estado.className = "text-danger";
+                }
+            });
+        }
+    </script>
+
+    <script th:if="${viajeActivo != null and viajeActivo.estado == 'en_ruta' and googleMapsApiKey != null and googleMapsApiKey != ''}"
+            th:src="'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&callback=initDriverMap'"
+            async defer>
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

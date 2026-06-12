@@ -125,7 +125,7 @@
 
                                     <span class="badge badge-req">
                                         <i class="fas fa-car me-1"></i>
-                                        Req:
+                                        Categoría del vehículo:
                                         <span th:text="${reserva.tipoVehiculo}"></span>
                                     </span>
                                 </div>
@@ -166,6 +166,7 @@
                         <form id="formAsignacion" th:action="@{/admin/asignar}" method="post" class="mt-4">
 
                             <input type="hidden" id="reservaId" name="reservaId">
+                            <input type="hidden" id="tipoReservaSeleccionada">
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">RESERVA SELECCIONADA:</label>
@@ -219,7 +220,8 @@
                                     <option value="">Seleccione conductor</option>
                                     <option th:each="conductor : ${conductoresDisponibles}"
                                             th:value="${conductor.id}"
-                                            th:text="${conductor.nombre + ' (' + conductor.tipoVehiculo + ')'}">
+                                            th:data-tipo="${conductor.tipoVehiculo}"
+                                            th:text="${conductor.nombre + ' - habilitado para ' + conductor.tipoVehiculo}">
                                     </option>
                                 </select>
                             </div>
@@ -304,6 +306,10 @@
             const reservaId = document.getElementById("reservaId").value;
             const conductorId = document.getElementById("conductorId").value;
             const distancia = Number(document.getElementById("distanciaMapeada").value);
+            const tipoReserva = document.getElementById("tipoReservaSeleccionada").value;
+            const selectConductor = document.getElementById("conductorId");
+            const opcionConductor = selectConductor.options[selectConductor.selectedIndex];
+            const tipoConductor = opcionConductor ? opcionConductor.getAttribute("data-tipo") : "";
 
             if (!reservaId) {
                 event.preventDefault();
@@ -321,6 +327,11 @@
                 event.preventDefault();
                 alert("Calcula o ingresa una distancia válida.");
             }
+            if (tipoReserva && tipoConductor && tipoReserva.toLowerCase() !== tipoConductor.toLowerCase()) {
+                event.preventDefault();
+                alert("El conductor seleccionado no corresponde a la categoría del vehículo del cliente.");
+                return;
+            }
         });
     });
 
@@ -328,16 +339,48 @@
         const reservaId = boton.getAttribute("data-id");
         const origen = boton.getAttribute("data-origen");
         const destino = boton.getAttribute("data-destino");
+        const tipo = boton.getAttribute("data-tipo");
         const label = boton.getAttribute("data-label");
 
         document.getElementById("reservaId").value = reservaId;
-        document.getElementById("reservaSeleccionada").value = label;
+        document.getElementById("tipoReservaSeleccionada").value = tipo;
+        document.getElementById("reservaSeleccionada").value = label + " | Categoría: " + tipo;
         document.getElementById("origenMapa").value = origen;
         document.getElementById("destinoMapa").value = destino;
 
+        filtrarConductoresPorCategoria(tipo);
         limpiarCalculos();
         calcularRuta(origen, destino);
     }
+    function filtrarConductoresPorCategoria(tipoReserva) {
+    const select = document.getElementById("conductorId");
+    const tipoNormalizado = (tipoReserva || "").toLowerCase();
+    let compatibles = 0;
+
+    select.value = "";
+
+    Array.from(select.options).forEach(function (option) {
+        if (!option.value) {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+
+        const tipoConductor = (option.getAttribute("data-tipo") || "").toLowerCase();
+        const esCompatible = tipoConductor === tipoNormalizado;
+
+        option.hidden = !esCompatible;
+        option.disabled = !esCompatible;
+
+        if (esCompatible) {
+            compatibles++;
+        }
+    });
+
+    if (compatibles === 0) {
+        alert("No hay conductores disponibles para la categoría " + tipoReserva + ". Registra o habilita un conductor compatible.");
+    }
+}
 
     function calcularRutaDesdeInputs() {
         const origen = document.getElementById("origenMapa").value;

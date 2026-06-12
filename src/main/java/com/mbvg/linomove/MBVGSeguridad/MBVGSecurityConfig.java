@@ -24,20 +24,79 @@ public class MBVGSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/registro", "/login-**", "/css/**", "/js/**", "/api/**", "/error").permitAll()
+                .requestMatchers(
+                    "/",
+                    "/registro",
+                    "/login-cliente",
+                    "/login-conductor",
+                    "/login-admin",
+                    "/procesar-login",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/static/**",
+                    "/api/**",
+                    "/error"
+                ).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/conductor/**").hasRole("CONDUCTOR")
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
             )
+
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    String uri = request.getRequestURI();
+                    String context = request.getContextPath();
+
+                    if (uri.startsWith(context + "/admin")) {
+                        response.sendRedirect(context + "/login-admin");
+                    } else if (uri.startsWith(context + "/conductor")) {
+                        response.sendRedirect(context + "/login-conductor");
+                    } else {
+                        response.sendRedirect(context + "/login-cliente");
+                    }
+                })
+
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    String uri = request.getRequestURI();
+                    String context = request.getContextPath();
+
+                    if (uri.startsWith(context + "/admin")) {
+                        response.sendRedirect(context + "/login-admin?error");
+                    } else if (uri.startsWith(context + "/conductor")) {
+                        response.sendRedirect(context + "/login-conductor?error");
+                    } else {
+                        response.sendRedirect(context + "/login-cliente?error");
+                    }
+                })
+            )
+
             .addFilterBefore(recaptchaFilter, UsernamePasswordAuthenticationFilter.class)
+
             .formLogin(form -> form
                 .loginPage("/login-cliente")
                 .loginProcessingUrl("/procesar-login")
                 .successHandler(successHandler)
+
+                .failureHandler((request, response, exception) -> {
+                    String tipoUsuario = request.getParameter("tipoUsuario");
+                    String context = request.getContextPath();
+
+                    if ("admin".equalsIgnoreCase(tipoUsuario)) {
+                        response.sendRedirect(context + "/login-admin?error");
+                    } else if ("conductor".equalsIgnoreCase(tipoUsuario)) {
+                        response.sendRedirect(context + "/login-conductor?error");
+                    } else {
+                        response.sendRedirect(context + "/login-cliente?error");
+                    }
+                })
+
                 .permitAll()
             )
+
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/")

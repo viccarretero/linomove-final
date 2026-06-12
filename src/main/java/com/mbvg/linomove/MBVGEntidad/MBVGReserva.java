@@ -39,6 +39,15 @@ public class MBVGReserva {
 
     private Double tarifa;
 
+    @Column(name = "latitud_conductor")
+    private Double latitudConductor;
+
+    @Column(name = "longitud_conductor")
+    private Double longitudConductor;
+
+    @Column(name = "ultima_ubicacion_conductor")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date ultimaUbicacionConductor;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "fecha_solicitud")
@@ -143,5 +152,28 @@ public class MBVGReserva {
 
     public void setFechaSolicitud(Date fechaSolicitud) {
         this.fechaSolicitud = fechaSolicitud;
+    }
+        public Double getLatitudConductor() {
+        return latitudConductor;
+    }
+
+    public void setLatitudConductor(Double latitudConductor) {
+        this.latitudConductor = latitudConductor;
+    }
+
+    public Double getLongitudConductor() {
+        return longitudConductor;
+    }
+
+    public void setLongitudConductor(Double longitudConductor) {
+        this.longitudConductor = longitudConductor;
+    }
+
+    public Date getUltimaUbicacionConductor() {
+        return ultimaUbicacionConductor;
+    }
+
+    public void setUltimaUbicacionConductor(Date ultimaUbicacionConductor) {
+        this.ultimaUbicacionConductor = ultimaUbicacionConductor;
     }
 }

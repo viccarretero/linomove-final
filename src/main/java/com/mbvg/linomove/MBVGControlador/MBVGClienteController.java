@@ -343,6 +343,51 @@ public String verFormularioCalificacion(@RequestParam Integer reservaId,
 
         return "MBVGCliente/MBVGrastreo";
     }
+        @GetMapping("/rastreo/ubicacion")
+    @ResponseBody
+    public Map<String, Object> obtenerUbicacionConductor(HttpSession session) {
+        Map<String, Object> respuesta = new HashMap<>();
+
+        Integer clienteId = (Integer) session.getAttribute("usuarioId");
+
+        if (clienteId == null) {
+            respuesta.put("disponible", false);
+            respuesta.put("mensaje", "Sesión de cliente no válida.");
+            return respuesta;
+        }
+
+        MBVGReserva reservaActiva = reservaRepo
+                .findFirstByClienteIdAndEstadoOrderByFechaSolicitudDesc(clienteId, "en_ruta")
+                .orElse(null);
+
+        if (reservaActiva == null) {
+            respuesta.put("disponible", false);
+            respuesta.put("mensaje", "No hay viaje en ruta.");
+            return respuesta;
+        }
+
+        if (reservaActiva.getLatitudConductor() == null || reservaActiva.getLongitudConductor() == null) {
+            respuesta.put("disponible", false);
+            respuesta.put("mensaje", "Esperando ubicación del conductor.");
+            return respuesta;
+        }
+
+        respuesta.put("disponible", true);
+        respuesta.put("reservaId", reservaActiva.getId());
+        respuesta.put("latitud", reservaActiva.getLatitudConductor());
+        respuesta.put("longitud", reservaActiva.getLongitudConductor());
+        respuesta.put("ultimaUbicacion", reservaActiva.getUltimaUbicacionConductor());
+
+        MBVGConductor conductor = null;
+
+        if (reservaActiva.getConductorId() != null) {
+            conductor = conductorRepo.findById(reservaActiva.getConductorId()).orElse(null);
+        }
+
+        respuesta.put("conductor", conductor != null ? conductor.getNombre() : "Conductor asignado");
+
+        return respuesta;
+    }
 
     @GetMapping("/soporte")
     public String soporte(HttpSession session, Model model) {

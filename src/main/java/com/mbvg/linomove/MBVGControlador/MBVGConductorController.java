@@ -1,5 +1,10 @@
 package com.mbvg.linomove.MBVGControlador;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import com.mbvg.linomove.MBVGRepositorio.MBVGReservaRepository;
 import com.mbvg.linomove.MBVGServicio.MBVGNotificacionService;
 import com.mbvg.linomove.MBVGEntidad.MBVGConductor;
@@ -27,6 +32,8 @@ public class MBVGConductorController {
 
     @Autowired
     private MBVGConductorService conductorService;
+    @Value("${google.maps.api.key:}")
+    private String googleMapsApiKey;
 
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
@@ -44,6 +51,7 @@ public class MBVGConductorController {
         model.addAttribute("viajeActivo", viajeActivo);
         long viajesMes = conductorService.obtenerViajesDelMes(conductorId);
         model.addAttribute("viajesMes", viajesMes);
+        model.addAttribute("googleMapsApiKey", googleMapsApiKey);
         
         return "MBVGConductor/MBVGdashboard";
     }
@@ -123,6 +131,55 @@ public class MBVGConductorController {
         }
 
         return "redirect:/conductor/dashboard?error=No se pudo finalizar el viaje";
+    }
+        @PostMapping("/viaje/ubicacion")
+    @ResponseBody
+    public Map<String, Object> actualizarUbicacionConductor(@RequestParam Double latitud,
+                                                            @RequestParam Double longitud,
+                                                            HttpSession session) {
+        Map<String, Object> respuesta = new HashMap<>();
+
+        Integer conductorId = (Integer) session.getAttribute("usuarioId");
+
+        if (conductorId == null) {
+            respuesta.put("ok", false);
+            respuesta.put("mensaje", "Sesión de conductor no válida.");
+            return respuesta;
+        }
+
+        if (latitud == null || longitud == null ||
+                latitud < -90 || latitud > 90 ||
+                longitud < -180 || longitud > 180) {
+            respuesta.put("ok", false);
+            respuesta.put("mensaje", "Coordenadas no válidas.");
+            return respuesta;
+        }
+
+        MBVGReserva viajeActivo = reservaRepo
+                .findFirstByConductorIdAndEstadoInOrderByFechaTrasladoAsc(
+                        conductorId,
+                        List.of("en_ruta")
+                )
+                .orElse(null);
+
+        if (viajeActivo == null) {
+            respuesta.put("ok", false);
+            respuesta.put("mensaje", "No tienes un viaje en ruta.");
+            return respuesta;
+        }
+
+        viajeActivo.setLatitudConductor(latitud);
+        viajeActivo.setLongitudConductor(longitud);
+        viajeActivo.setUltimaUbicacionConductor(new Date());
+
+        reservaRepo.save(viajeActivo);
+
+        respuesta.put("ok", true);
+        respuesta.put("mensaje", "Ubicación actualizada.");
+        respuesta.put("latitud", latitud);
+        respuesta.put("longitud", longitud);
+
+        return respuesta;
     }
 
     // --- MI PERFIL (CONDUCTOR) ---

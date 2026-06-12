@@ -64,9 +64,9 @@
         <div class="row">
             <div class="col-lg-6 mb-4">
                 <div class="dashboard-card p-4 h-100">
-                    <h5 class="text-primary border-bottom pb-2 mb-3">
-                        <i class="fas fa-car me-2"></i>Solicitar Traslado
-                    </h5>
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-user-tie me-2"></i>Solicitar Conductor para Traslado
+                </h5>
 
                     <form th:action="@{/cliente/solicitar-traslado}" th:object="${reserva}" method="post">
                         <div class="mb-3">
@@ -85,18 +85,30 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tipo de Vehículo <span class="text-danger">*</span></label>
+                            <label class="form-label">
+                                Categoría del vehículo del cliente <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" th:field="*{tipoVehiculo}" required>
+                                <option value="">-- Selecciona la categoría --</option>
                                 <option value="economico">Económico</option>
                                 <option value="comfort">Confort</option>
                                 <option value="premium">Premium</option>
                                 <option value="suv">SUV</option>
                             </select>
+                            <div class="form-text">
+                                Esta categoría indica qué tipo de vehículo del cliente manejará el conductor asignado.
+                            </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Observaciones</label>
-                            <textarea class="form-control" th:field="*{observaciones}" rows="2"></textarea>
+                            <label class="form-label">Datos del vehículo / observaciones</label>
+                            <textarea class="form-control"
+                                      th:field="*{observaciones}"
+                                      rows="2"
+                                      placeholder="Ejemplo: Toyota Hilux, placa ABC-123, color blanco, indicaciones para recoger el vehículo."></textarea>
+                            <div class="form-text">
+                                Aquí el cliente puede indicar datos del vehículo que será trasladado.
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">

@@ -64,7 +64,7 @@
                                     <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Email</th>
-                                    <th>Vehículo</th>
+                                    <th>Categoría habilitada</th>
                                     <th>Puntuación</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
@@ -208,7 +208,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tipo de Vehículo que maneja</label>
+                            <label class="form-label">Categoría de vehículo que puede manejar</label>
                             <select class="form-select" name="tipoVehiculo" required>
                                 <option value="">-- Seleccionar tipo --</option>
                                 <option value="economico">Económico</option>
@@ -353,7 +353,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Tipo de Vehículo</label>
+                                <label class="form-label">Categoría de vehículo que puede manejar</label>
                                 <select class="form-select" name="tipoVehiculo" required>
                                     <option value="">-- Seleccionar tipo --</option>
                                     <option value="economico" th:selected="${conductor.tipoVehiculo == 'economico'}">Económico</option>
@@ -362,7 +362,7 @@
                                     <option value="suv" th:selected="${conductor.tipoVehiculo == 'suv'}">SUV</option>
                                 </select>
                                 <div class="invalid-feedback">
-                                    Selecciona el tipo de vehículo.
+                                Selecciona la categoría de vehículo que el conductor está habilitado para manejar.
                                 </div>
                             </div>
 

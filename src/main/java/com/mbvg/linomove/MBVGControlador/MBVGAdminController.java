@@ -569,10 +569,8 @@ public String eliminarConductor(@RequestParam Integer id) {
 
     // --- GESTIÓN DE FLOTA ---
     @GetMapping("/flota")
-    public String flota(Model model) {
-        model.addAttribute("vehiculos", vehiculoRepo.findAll());
-        model.addAttribute("conductores", conductorRepo.findAll());
-        return "MBVGAdmin/MBVGgestionflota";
+    public String gestionFlota() {
+        return "redirect:/admin/conductores";
     }
 
     @PostMapping("/flota/crear")
@@ -852,6 +850,12 @@ public String eliminarConductor(@RequestParam Integer id) {
 
         if (!"disponible".equalsIgnoreCase(conductor.getEstado())) {
             return "redirect:/admin/asignacion?error=El conductor seleccionado ya no está disponible.";
+        }
+        String tipoReserva = limpiar(reserva.getTipoVehiculo()).toLowerCase();
+        String tipoConductor = limpiar(conductor.getTipoVehiculo()).toLowerCase();
+
+        if (!tipoReserva.equals(tipoConductor)) {
+            return "redirect:/admin/asignacion?error=El conductor seleccionado no corresponde a la categoría del vehículo del cliente.";
         }
 
         boolean tieneViajeActivo = reservaRepo.existsByConductorIdAndEstadoIn(
