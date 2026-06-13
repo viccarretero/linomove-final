@@ -144,6 +144,14 @@
                                             th:data-label="${'Reserva #' + reserva.id + ' (' + reserva.origen + ' a ' + reserva.destino + ')'}">
                                         Atender
                                     </button>
+                                    <button type="button"
+                                    class="btn btn-outline-danger btn-sm mt-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalRechazar"
+                                    th:data-reserva-id="${reserva.id}"
+                                    th:data-reserva-label="${'Reserva #' + reserva.id + ' (' + reserva.origen + ' a ' + reserva.destino + ')'}">
+                                    <i class="fas fa-times-circle me-1"></i>Rechazar
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -249,6 +257,56 @@
 
     </div>
 </div>
+<div class="modal fade" id="modalRechazar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <form th:action="@{/admin/asignacion/rechazar}" method="post">
+
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle me-2"></i>Rechazar solicitud
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="reservaId" id="reservaRechazarId">
+
+                    <p class="fw-bold mb-2">Solicitud seleccionada:</p>
+                    <div class="alert alert-light border" id="textoReservaRechazar">
+                        Reserva seleccionada
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Motivo del rechazo</label>
+                        <textarea name="motivo"
+                                  class="form-control"
+                                  rows="3"
+                                  required
+                                  placeholder="Ejemplo: La ruta solicitada está fuera de la cobertura nacional del servicio."></textarea>
+                    </div>
+
+                    <small class="text-muted">
+                        El cliente recibirá una notificación con el motivo del rechazo.
+                    </small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-check me-1"></i>Sí, rechazar solicitud
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
 
 <script th:inline="javascript">
     let map;
@@ -299,6 +357,19 @@
                 seleccionarReserva(this);
             });
         });
+        const modalRechazar = document.getElementById("modalRechazar");
+
+        if (modalRechazar) {
+            modalRechazar.addEventListener("show.bs.modal", function (event) {
+                const button = event.relatedTarget;
+
+                const reservaId = button.getAttribute("data-reserva-id");
+                const reservaLabel = button.getAttribute("data-reserva-label");
+
+                document.getElementById("reservaRechazarId").value = reservaId;
+                document.getElementById("textoReservaRechazar").textContent = reservaLabel;
+            });
+        }
 
         const form = document.getElementById("formAsignacion");
 

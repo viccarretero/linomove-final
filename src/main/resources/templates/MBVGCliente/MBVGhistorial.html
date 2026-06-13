@@ -84,17 +84,18 @@
                                 <td th:text="${viaje.conductorId != null ? 'ID Conductor: ' + viaje.conductorId : 'Por asignar'}"></td>
                                 
                                 <td class="text-success fw-bold"
-                                    th:text="${viaje.tarifa != null ? 'S/ ' + viaje.tarifa : 'Calculando...'}">
+                                th:text="${viaje.estado == 'rechazada' ? 'No aplica' : (viaje.tarifa != null ? 'S/ ' + viaje.tarifa : 'Calculando...')}">
                                 </td>
                                 
                                 <td>
                                     <span class="badge"
-                                          th:classappend="${
-                                            viaje.estado == 'pendiente' ? 'bg-warning text-dark' :
-                                            (viaje.estado == 'asignada' ? 'bg-info text-dark' :
-                                            (viaje.estado == 'en_ruta' ? 'bg-primary' :
-                                            ((viaje.estado == 'completada' or viaje.estado == 'completado') ? 'bg-success' : 'bg-secondary')))
-                                          }"
+                                            th:classappend="${
+                                                viaje.estado == 'pendiente' ? 'bg-warning text-dark' :
+                                                (viaje.estado == 'asignada' ? 'bg-info text-dark' :
+                                                (viaje.estado == 'en_ruta' ? 'bg-primary' :
+                                                ((viaje.estado == 'completada' or viaje.estado == 'completado') ? 'bg-success' :
+                                                (viaje.estado == 'rechazada' ? 'bg-danger' : 'bg-secondary'))))
+                                            }"
                                           th:text="${viaje.estado}">
                                     </span>
                                 </td>
@@ -142,6 +143,9 @@
 
                                         <span th:if="${viaje.estado == 'en_ruta'}" class="text-primary">
                                             <i class="fas fa-route me-1"></i>En ruta
+                                        </span>
+                                        <span th:if="${viaje.estado == 'rechazada'}" class="text-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Solicitud rechazada
                                         </span>
 
                                     </div>

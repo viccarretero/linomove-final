@@ -883,6 +883,40 @@ public String eliminarConductor(@RequestParam Integer id) {
 
         return "redirect:/admin/asignacion?exito=Traslado asignado correctamente.";
     }
+        @PostMapping("/asignacion/rechazar")
+    public String rechazarSolicitud(@RequestParam Integer reservaId,
+                                    @RequestParam(required = false) String motivo) {
+
+        MBVGReserva reserva = reservaRepo.findById(reservaId).orElse(null);
+
+        if (reserva == null) {
+            return "redirect:/admin/asignacion?error=No se encontró la solicitud seleccionada.";
+        }
+
+        if (!"pendiente".equalsIgnoreCase(limpiar(reserva.getEstado()))) {
+            return "redirect:/admin/asignacion?error=Solo se pueden rechazar solicitudes pendientes.";
+        }
+
+        motivo = limpiar(motivo);
+
+        if (motivo.isEmpty()) {
+            motivo = "La ruta solicitada no se encuentra dentro de la cobertura del servicio.";
+        }
+
+        reserva.setEstado("rechazada");
+        reservaRepo.save(reserva);
+
+        notificacionService.crearNotificacion(
+                reserva.getClienteId(),
+                "cliente",
+                "Solicitud rechazada",
+                "Tu solicitud de traslado " + reserva.getOrigen() + " → " + reserva.getDestino()
+                        + " fue rechazada. Motivo: " + motivo,
+                "rechazo"
+        );
+
+        return "redirect:/admin/asignacion?exito=Solicitud rechazada correctamente.";
+    }
         // --- VALIDACIÓN DE PAGOS ---
     @GetMapping("/pagos")
     public String gestionPagos(Model model) {
