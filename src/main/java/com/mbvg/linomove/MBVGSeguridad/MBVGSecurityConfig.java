@@ -38,6 +38,7 @@ public class MBVGSecurityConfig {
                     "/images/**",
                     "/static/**",
                     "/api/**",
+                    "/microservicio/**",
                     "/error"
                 ).permitAll()
 
