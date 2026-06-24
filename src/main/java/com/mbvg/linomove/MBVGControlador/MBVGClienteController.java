@@ -82,7 +82,26 @@ public class MBVGClienteController {
             session.setAttribute("mensajeError", "Verifique que todos los datos ingresados sean correctos.");
             return "redirect:/cliente/dashboard";
         }
-        
+        String origen = limpiarTexto(reserva.getOrigen());
+        String destino = limpiarTexto(reserva.getDestino());
+
+        if (origen.isEmpty() || destino.isEmpty()) {
+            session.setAttribute("mensajeError", "Debe seleccionar origen y destino completos.");
+            return "redirect:/cliente/dashboard";
+        }
+
+        if (!ubicacionPeruValida(origen) || !ubicacionPeruValida(destino)) {
+            session.setAttribute("mensajeError", "Solo se permiten ubicaciones seleccionadas dentro del Perú.");
+            return "redirect:/cliente/dashboard";
+        }
+
+        if (origen.equalsIgnoreCase(destino)) {
+            session.setAttribute("mensajeError", "El origen y el destino no pueden ser iguales.");
+            return "redirect:/cliente/dashboard";
+        }
+
+        reserva.setOrigen(origen);
+        reserva.setDestino(destino);
         try {
         reserva.setClienteId(clienteId);
         reservaService.solicitarTraslado(reserva);
@@ -401,24 +420,96 @@ public String verFormularioCalificacion(@RequestParam Integer reservaId,
     }
 
     @PostMapping("/soporte/crear")
-    public String crearTicketSoporte(@RequestParam String asunto, @RequestParam String descripcion, 
-                                     @RequestParam String prioridad, HttpSession session) {
-        
+    public String crearTicketSoporte(@RequestParam String tipoTicket,
+                                     @RequestParam(required = false) String asuntoOtro,
+                                     @RequestParam String descripcion,
+                                     @RequestParam String prioridad,
+                                     HttpSession session) {
+
         Integer clienteId = (Integer) session.getAttribute("usuarioId");
+
         if (clienteId == null) {
             return "redirect:/login-cliente";
         }
 
+        tipoTicket = limpiarTexto(tipoTicket);
+        asuntoOtro = limpiarTexto(asuntoOtro);
+        descripcion = limpiarTexto(descripcion);
+        prioridad = limpiarTexto(prioridad).toLowerCase();
+
+        if (!tipoTicketValido(tipoTicket)) {
+            session.setAttribute("mensajeError", "Debes seleccionar un tipo de ticket válido.");
+            return "redirect:/cliente/soporte";
+        }
+
+        if ("Otros".equals(tipoTicket) && asuntoOtro.isEmpty()) {
+            session.setAttribute("mensajeError", "Debes especificar el motivo cuando seleccionas Otros.");
+            return "redirect:/cliente/soporte";
+        }
+
+        if (descripcion.length() < 5 || descripcion.length() > 500) {
+            session.setAttribute("mensajeError", "La descripción debe tener entre 5 y 500 caracteres.");
+            return "redirect:/cliente/soporte";
+        }
+
+        if (!prioridadValida(prioridad)) {
+            session.setAttribute("mensajeError", "Debes seleccionar una prioridad válida.");
+            return "redirect:/cliente/soporte";
+        }
+
+        String asuntoFinal = tipoTicket;
+
+        if ("Otros".equals(tipoTicket)) {
+            asuntoFinal = "Otros: " + asuntoOtro;
+        }
+
         MBVGSoporte nuevoTicket = new MBVGSoporte();
         nuevoTicket.setClienteId(clienteId);
-        nuevoTicket.setAsunto(asunto);
+        nuevoTicket.setAsunto(asuntoFinal);
         nuevoTicket.setDescripcion(descripcion);
         nuevoTicket.setPrioridad(prioridad);
-        
+        nuevoTicket.setEstado("abierto");
+
         soporteService.crearTicket(nuevoTicket);
 
         session.setAttribute("mensajeExito", "Ticket creado y enviado a soporte correctamente.");
         return "redirect:/cliente/soporte";
+    }
+    private String limpiarTexto(String valor) {
+        return valor == null ? "" : valor.trim();
+    }
+    private boolean ubicacionPeruValida(String ubicacion) {
+        String valor = limpiarTexto(ubicacion).toLowerCase();
+
+        if (valor.isEmpty()) {
+            return false;
+        }
+
+        if (!valor.endsWith(", perú") && !valor.endsWith(", peru")) {
+            return false;
+        }
+
+        String[] partes = valor.split(",");
+
+        return partes.length >= 4
+                && !partes[0].trim().isEmpty()
+                && !partes[1].trim().isEmpty()
+                && !partes[2].trim().isEmpty();
+    }
+
+    private boolean tipoTicketValido(String tipoTicket) {
+        return "Problema con pago".equals(tipoTicket)
+                || "Problema con conductor".equals(tipoTicket)
+                || "Problema con rastreo".equals(tipoTicket)
+                || "Problema con reserva".equals(tipoTicket)
+                || "Consulta general".equals(tipoTicket)
+                || "Otros".equals(tipoTicket);
+    }
+
+    private boolean prioridadValida(String prioridad) {
+        return "baja".equals(prioridad)
+                || "media".equals(prioridad)
+                || "alta".equals(prioridad);
     }
 
     // --- ESTA ES LA RUTA QUE FALTABA PARA EVITAR EL 404 ---

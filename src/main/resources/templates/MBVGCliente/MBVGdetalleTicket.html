@@ -5,49 +5,151 @@
     <title>Detalle Ticket - Linomove</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .seguimiento-box {
+            white-space: pre-line;
+            line-height: 1.6;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
 </head>
+
 <body class="bg-light d-flex flex-column min-vh-100">
 
     <div th:replace="~{MBVGComponentes/MBVGheader :: headerPrincipal}"></div>
 
     <div class="container py-4 flex-grow-1">
+
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="text-primary m-0"><i class="fas fa-ticket-alt me-2"></i>Ticket <span th:text="${'#' + ticket.id}"></span></h2>
-            <a th:href="@{/cliente/soporte}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Volver</a>
+            <h2 class="text-primary m-0">
+                <i class="fas fa-ticket-alt me-2"></i>
+                Detalle del Ticket <span th:text="${'#' + ticket.id}"></span>
+            </h2>
+
+            <a th:href="@{/cliente/soporte}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Volver
+            </a>
         </div>
 
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
+
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="m-0" th:text="${ticket.asunto}"></h5>
-                        <span class="badge" th:classappend="${ticket.estado == 'abierto' ? 'bg-warning text-dark' : 'bg-success'}" th:text="${ticket.estado}"></span>
+                        <h5 class="m-0">
+                            <i class="fas fa-headset me-2 text-primary"></i>
+                            <span th:text="${ticket.asunto}"></span>
+                        </h5>
+
+                        <span class="badge"
+                              th:classappend="${
+                                  ticket.estado == 'abierto' ? 'bg-warning text-dark' :
+                                  (ticket.estado == 'en_proceso' ? 'bg-info text-dark' :
+                                  (ticket.estado == 'resuelto' ? 'bg-success' : 'bg-secondary'))
+                              }"
+                              th:text="${ticket.estado}">
+                        </span>
                     </div>
+
                     <div class="card-body">
-                        <p class="text-muted small mb-2"><i class="fas fa-calendar me-1"></i> Creado el: <span th:text="${#dates.format(ticket.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span></p>
-                        <div class="bg-light p-3 rounded mb-0">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <span class="info-label">
+                                        <i class="fas fa-calendar me-1"></i>Fecha de creación:
+                                    </span>
+                                </p>
+                                <p class="text-muted mb-0"
+                                   th:text="${ticket.fechaCreacion != null ? #dates.format(ticket.fechaCreacion, 'dd/MM/yyyy HH:mm') : 'No registrada'}">
+                                </p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <span class="info-label">
+                                        <i class="fas fa-flag me-1"></i>Prioridad:
+                                    </span>
+                                </p>
+
+                                <span class="badge"
+                                      th:classappend="${
+                                          ticket.prioridad == 'alta' ? 'bg-danger' :
+                                          (ticket.prioridad == 'media' ? 'bg-warning text-dark' : 'bg-info')
+                                      }"
+                                      th:text="${ticket.prioridad}">
+                                </span>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <p class="info-label mb-2">
+                            <i class="fas fa-align-left me-1"></i>Descripción del problema:
+                        </p>
+
+                        <div class="bg-light p-3 rounded border">
                             <p class="mb-0" th:text="${ticket.descripcion}"></p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4"
+                     th:if="${ticket.respuesta != null and !#strings.isEmpty(ticket.respuesta)}">
+
+                    <div class="card-header bg-white py-3">
+                        <h5 class="m-0 text-primary">
+                            <i class="fas fa-comments me-2"></i>Seguimiento del caso
+                        </h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="alert alert-light border seguimiento-box mb-0"
+                             th:text="${ticket.respuesta}">
                         </div>
                     </div>
                 </div>
 
-                <div th:if="${ticket.respuesta != null}" class="card shadow-sm border-0 border-start border-success border-4">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="text-success m-0"><i class="fas fa-reply me-2"></i>Respuesta de Linomove</h6>
-                    </div>
+                <div class="card shadow-sm border-0 border-start border-success border-4 mb-4"
+                     th:if="${ticket.estado == 'resuelto'}">
+
                     <div class="card-body">
-                        <p class="text-muted small mb-2"><i class="fas fa-clock me-1"></i> Respondido el: <span th:text="${#dates.format(ticket.fechaResolucion, 'dd/MM/yyyy HH:mm')}"></span></p>
-                        <p class="mb-0" th:text="${ticket.respuesta}"></p>
+                        <h6 class="text-success">
+                            <i class="fas fa-check-circle me-2"></i>Ticket resuelto
+                        </h6>
+
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-clock me-1"></i>
+                            Fecha de resolución:
+                            <span th:text="${ticket.fechaResolucion != null ? #dates.format(ticket.fechaResolucion, 'dd/MM/yyyy HH:mm') : 'No registrada'}"></span>
+                        </p>
                     </div>
                 </div>
-                
-                <div th:if="${ticket.respuesta == null}" class="alert alert-info text-center mt-3">
-                    <i class="fas fa-hourglass-half me-2"></i>Tu ticket está siendo revisado por nuestro equipo. Te notificaremos pronto.
+
+                <div class="alert alert-info text-center"
+                     th:if="${ticket.estado == 'abierto'}">
+                    <i class="fas fa-hourglass-half me-2"></i>
+                    Tu ticket fue recibido y está pendiente de revisión por soporte.
                 </div>
+
+                <div class="alert alert-primary text-center"
+                     th:if="${ticket.estado == 'en_proceso'}">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Tu ticket está en proceso. El equipo de soporte ya registró un seguimiento del caso.
+                </div>
+
             </div>
         </div>
     </div>
 
     <div th:replace="~{MBVGComponentes/MBVGfooter :: footerPrincipal}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

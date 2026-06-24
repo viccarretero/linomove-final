@@ -23,9 +23,10 @@ public class MBVGAuthController {
         return "MBVGConductor/MBVGlogin";
     }
 
+    // Panel admin web deshabilitado.
+    // La administración se realizará desde el sistema de escritorio.
     @GetMapping("/login-admin")
-    public String loginAdmin(Model model) {
-        model.addAttribute("recaptchaSiteKey", recaptchaSiteKey);
-        return "MBVGAdmin/MBVGlogin";
+    public String loginAdmin() {
+        return "redirect:/";
     }
 }
