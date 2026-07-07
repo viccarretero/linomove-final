@@ -25,11 +25,6 @@
             <i class="fas fa-check-circle me-2"></i><span th:text="${session.mensajeExito}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        
-        <div th:if="${session.mensajeError != null}" class="alert alert-danger alert-dismissible fade show">
-        <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${session.mensajeError}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
 
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
@@ -52,24 +47,12 @@
                             <tr th:each="ticket : ${tickets}">
                                 <td th:text="${'#' + ticket.id}"></td>
                                 <td th:text="${ticket.asunto}"></td>
+                                <td><span class="badge bg-info" th:text="${ticket.prioridad}"></span></td>
                                 <td>
-                                    <span class="badge"
-                                          th:classappend="${
-                                              ticket.prioridad == 'alta' ? 'bg-danger' :
-                                              (ticket.prioridad == 'media' ? 'bg-warning text-dark' : 'bg-info')
-                                          }"
-                                          th:text="${ticket.prioridad}">
+                                    <span class="badge" 
+                                          th:classappend="${ticket.estado == 'abierto' ? 'bg-warning text-dark' : (ticket.estado == 'resuelto' ? 'bg-success' : 'bg-secondary')}"
+                                          th:text="${ticket.estado}">
                                     </span>
-                                </td>
-                                <td>
-                                <span class="badge"
-                                      th:classappend="${
-                                          ticket.estado == 'abierto' ? 'bg-warning text-dark' :
-                                          (ticket.estado == 'en_proceso' ? 'bg-info text-dark' :
-                                          (ticket.estado == 'resuelto' ? 'bg-success' : 'bg-secondary'))
-                                      }"
-                                      th:text="${ticket.estado}">
-                                </span>
                                 </td>
                                 <td th:text="${ticket.fechaCreacion != null ? #dates.format(ticket.fechaCreacion, 'dd/MM/yyyy HH:mm') : 'Reciente'}"></td>
                                 <td>
@@ -96,27 +79,8 @@
                 <form th:action="@{/cliente/soporte/crear}" method="post">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Tipo de ticket</label>
-                            <select class="form-select" name="tipoTicket" id="tipoTicket" required>
-                                <option value="">-- Selecciona el tipo de problema --</option>
-                                <option value="Problema con pago">Problema con pago</option>
-                                <option value="Problema con conductor">Problema con conductor</option>
-                                <option value="Problema con rastreo">Problema con rastreo</option>
-                                <option value="Problema con reserva">Problema con reserva</option>
-                                <option value="Consulta general">Consulta general</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3 d-none" id="grupoAsuntoOtro">
-                            <label class="form-label">Especificar otro motivo</label>
-                            <input type="text"
-                                   class="form-control"
-                                   name="asuntoOtro"
-                                   id="asuntoOtro"
-                                   maxlength="100"
-                                   placeholder="Ejemplo: No encuentro mi comprobante de pago">
-                            <small class="text-muted">Este campo solo es obligatorio si seleccionas Otros.</small>
+                            <label class="form-label">Asunto</label>
+                            <input type="text" class="form-control" name="asunto" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Prioridad</label>
@@ -142,26 +106,5 @@
 
     <div th:replace="~{MBVGComponentes/MBVGfooter :: footerPrincipal}"></div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const tipoTicket = document.getElementById("tipoTicket");
-            const grupoAsuntoOtro = document.getElementById("grupoAsuntoOtro");
-            const asuntoOtro = document.getElementById("asuntoOtro");
-
-            if (tipoTicket) {
-                tipoTicket.addEventListener("change", function () {
-                    if (this.value === "Otros") {
-                        grupoAsuntoOtro.classList.remove("d-none");
-                        asuntoOtro.setAttribute("required", "required");
-                    } else {
-                        grupoAsuntoOtro.classList.add("d-none");
-                        asuntoOtro.removeAttribute("required");
-                        asuntoOtro.value = "";
-                    }
-                });
-            }
-        });
-    </script> 
 </body>
 </html>

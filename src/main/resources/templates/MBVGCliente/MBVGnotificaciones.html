@@ -77,21 +77,6 @@
         .notification-icon.estado {
             background: linear-gradient(135deg, #f39c12, #e67e22);
         }
-        .notification-icon.soporte {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        }
-
-        .notification-icon.soporte-proceso {
-            background: linear-gradient(135deg, #06b6d4, #0284c7);
-        }
-
-        .notification-icon.soporte-resuelto {
-            background: linear-gradient(135deg, #16a34a, #15803d);
-        }
-
-        .notification-icon.rechazo {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
 
         .notification-time {
             font-size: 0.78rem;
@@ -151,22 +136,15 @@
 
                     <div class="d-flex align-items-start">
                         <div class="notification-icon"
-                             th:classappend="${
-                                notif.tipo == 'soporte' and notif.titulo == 'Ticket resuelto' ? 'soporte-resuelto' :
-                                (notif.tipo == 'soporte' and notif.titulo == 'Ticket en proceso' ? 'soporte-proceso' :
-                                (notif.tipo != null ? notif.tipo : 'estado'))
-                             }">
-
+                             th:classappend="${notif.tipo != null ? notif.tipo : 'estado'}">
                             <i th:class="${
                                 notif.tipo == 'reserva' ? 'fas fa-car' :
                                 (notif.tipo == 'asignacion' ? 'fas fa-user-check' :
                                 (notif.tipo == 'pago' ? 'fas fa-money-check-alt' :
-                                (notif.tipo == 'finalizado' ? 'fas fa-flag-checkered' :
-                                (notif.tipo == 'rechazo' ? 'fas fa-times-circle' :
-                                (notif.tipo == 'soporte' and notif.titulo == 'Ticket resuelto' ? 'fas fa-check-circle' :
-                                (notif.tipo == 'soporte' ? 'fas fa-headset' : 'fas fa-bell'))))))
+                                (notif.tipo == 'finalizado' ? 'fas fa-flag-checkered' : 'fas fa-bell')))
                             }"></i>
                         </div>
+
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="mb-0"

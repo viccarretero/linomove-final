@@ -40,72 +40,6 @@
         .notif-badge {
             font-size: 11px;
         }
-        .notif-mini-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-right: 12px;
-        }
-
-        .notif-mini-icon.reserva {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-        }
-
-        .notif-mini-icon.asignacion {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-        }
-
-        .notif-mini-icon.pago {
-            background: linear-gradient(135deg, #27ae60, #219653);
-        }
-
-        .notif-mini-icon.finalizado {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-        }
-
-        .notif-mini-icon.estado {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-        }
-
-        .notif-mini-icon.soporte-proceso {
-            background: linear-gradient(135deg, #06b6d4, #0284c7);
-        }
-
-        .notif-mini-icon.soporte-resuelto {
-            background: linear-gradient(135deg, #16a34a, #15803d);
-        }
-
-        .notif-mini-icon.soporte {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        }
-
-        .notif-mini-icon.rechazo {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-        .ubicacion-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 15px;
-            background: #f8fafc;
-            margin-bottom: 15px;
-        }
-
-        .ubicacion-box h6 {
-            font-weight: 700;
-            color: #0d6efd;
-            margin-bottom: 12px;
-        }
-
-        .ubicacion-resumen {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 8px;
-        }
     </style>
 </head>
 
@@ -133,127 +67,54 @@
                 <h5 class="text-primary border-bottom pb-2 mb-3">
                     <i class="fas fa-user-tie me-2"></i>Solicitar Conductor para Traslado
                 </h5>
-                <form th:action="@{/cliente/solicitar-traslado}" th:object="${reserva}" method="post">
 
-                    <input type="hidden" th:field="*{origen}" id="origenFinal">
-                    <input type="hidden" th:field="*{destino}" id="destinoFinal">
+                    <form th:action="@{/cliente/solicitar-traslado}" th:object="${reserva}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Origen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{origen}" required>
+                        </div>
 
-                    <div id="alertaUbicacion" class="alert alert-danger d-none">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <span id="mensajeUbicacion"></span>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Destino <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{destino}" required>
+                        </div>
 
-                    <div class="ubicacion-box">
-                        <h6>
-                            <i class="fas fa-map-marker-alt me-2"></i>Origen del traslado
-                        </h6>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" th:field="*{fechaTraslado}" required>
+                        </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Región <span class="text-danger">*</span></label>
-                                <select class="form-select" id="regionOrigen" required>
-                                    <option value="">-- Región --</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Provincia <span class="text-danger">*</span></label>
-                                <select class="form-select" id="provinciaOrigen" required disabled>
-                                    <option value="">-- Provincia --</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Distrito / ciudad <span class="text-danger">*</span></label>
-                                <select class="form-select" id="distritoOrigen" required disabled>
-                                    <option value="">-- Distrito --</option>
-                                </select>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Categoría del vehículo del cliente <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" th:field="*{tipoVehiculo}" required>
+                                <option value="">-- Selecciona la categoría --</option>
+                                <option value="economico">Económico</option>
+                                <option value="comfort">Confort</option>
+                                <option value="premium">Premium</option>
+                                <option value="suv">SUV</option>
+                            </select>
+                            <div class="form-text">
+                                Esta categoría indica qué tipo de vehículo del cliente manejará el conductor asignado.
                             </div>
                         </div>
 
-                        <div class="ubicacion-resumen">
-                            <i class="fas fa-info-circle me-1"></i>
-                            El origen se guardará como ubicación válida dentro del Perú.
-                        </div>
-                    </div>
-
-                    <div class="ubicacion-box">
-                        <h6>
-                            <i class="fas fa-flag-checkered me-2"></i>Destino del traslado
-                        </h6>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Región <span class="text-danger">*</span></label>
-                                <select class="form-select" id="regionDestino" required>
-                                    <option value="">-- Región --</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Provincia <span class="text-danger">*</span></label>
-                                <select class="form-select" id="provinciaDestino" required disabled>
-                                    <option value="">-- Provincia --</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-2">
-                                <label class="form-label">Distrito / ciudad <span class="text-danger">*</span></label>
-                                <select class="form-select" id="distritoDestino" required disabled>
-                                    <option value="">-- Distrito --</option>
-                                </select>
+                        <div class="mb-3">
+                            <label class="form-label">Datos del vehículo / observaciones</label>
+                            <textarea class="form-control"
+                                      th:field="*{observaciones}"
+                                      rows="2"
+                                      placeholder="Ejemplo: Toyota Hilux, placa ABC-123, color blanco, indicaciones para recoger el vehículo."></textarea>
+                            <div class="form-text">
+                                Aquí el cliente puede indicar datos del vehículo que será trasladado.
                             </div>
                         </div>
 
-                        <div class="ubicacion-resumen">
-                            <i class="fas fa-info-circle me-1"></i>
-                            El destino debe ser diferente al origen.
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
-                        <input type="datetime-local" class="form-control" th:field="*{fechaTraslado}" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Categoría del vehículo del cliente <span class="text-danger">*</span>
-                        </label>
-                        <select class="form-select" th:field="*{tipoVehiculo}" required>
-                            <option value="">-- Selecciona la categoría --</option>
-                            <option value="economico">Económico</option>
-                            <option value="comfort">Confort</option>
-                            <option value="premium">Premium</option>
-                            <option value="suv">SUV</option>
-                        </select>
-                        <div class="form-text">
-                            Esta categoría indica qué tipo de vehículo del cliente manejará el conductor asignado.
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Datos del vehículo / observaciones</label>
-                        <textarea class="form-control"
-                                  th:field="*{observaciones}"
-                                  rows="2"
-                                  placeholder="Ejemplo: Toyota Hilux, placa ABC-123, color blanco, indicaciones para recoger el vehículo."></textarea>
-                        <div class="form-text">
-                            Aquí el cliente puede indicar datos del vehículo que será trasladado.
-                        </div>
-
-                        <div class="mt-2 d-flex gap-2 flex-wrap align-items-center">
-                            <button type="button" id="btnAnalizarIa" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-robot me-1"></i>Analizar con IA
-                            </button>
-                            <span id="resultadoIaCategoria" class="small text-muted"></span>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-paper-plane me-2"></i>Solicitar Traslado
-                    </button>
-                </form>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-paper-plane me-2"></i>Solicitar Traslado
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -302,44 +163,22 @@
                         <i class="fas fa-bell-slash fa-2x mb-2"></i>
                         <p class="mb-0">No hay notificaciones nuevas</p>
                     </div>
+
                     <div th:each="notif : ${notificacionesRecientes}" class="notificacion-item">
-                        <div class="d-flex align-items-start">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="fw-bold" th:text="${notif.titulo}"></h6>
 
-                            <div class="notif-mini-icon"
-                                 th:classappend="${
-                                    notif.tipo == 'soporte' and notif.titulo == 'Ticket resuelto' ? 'soporte-resuelto' :
-                                    (notif.tipo == 'soporte' and notif.titulo == 'Ticket en proceso' ? 'soporte-proceso' :
-                                    (notif.tipo != null ? notif.tipo : 'estado'))
-                                 }">
-
-                                <i th:class="${
-                                    notif.tipo == 'reserva' ? 'fas fa-car' :
-                                    (notif.tipo == 'asignacion' ? 'fas fa-user-check' :
-                                    (notif.tipo == 'pago' ? 'fas fa-money-check-alt' :
-                                    (notif.tipo == 'finalizado' ? 'fas fa-flag-checkered' :
-                                    (notif.tipo == 'rechazo' ? 'fas fa-times-circle' :
-                                    (notif.tipo == 'soporte' and notif.titulo == 'Ticket resuelto' ? 'fas fa-check-circle' :
-                                    (notif.tipo == 'soporte' ? 'fas fa-headset' : 'fas fa-bell'))))))
-                                }"></i>
-                            </div>
-
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <h6 class="fw-bold" th:text="${notif.titulo}"></h6>
-
-                                    <span th:if="${notif.estado == 'enviada'}" class="badge bg-warning text-dark notif-badge">
-                                        NUEVO
-                                    </span>
-                                </div>
-
-                                <p class="text-muted" th:text="${notif.mensaje}"></p>
-
-                                <small class="text-secondary">
-                                    <i class="fas fa-clock me-1"></i>
-                                    <span th:text="${#dates.format(notif.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span>
-                                </small>
-                            </div>
+                            <span th:if="${notif.estado == 'enviada'}" class="badge bg-warning text-dark notif-badge">
+                                NUEVO
+                            </span>
                         </div>
+
+                        <p class="text-muted" th:text="${notif.mensaje}"></p>
+
+                        <small class="text-secondary">
+                            <i class="fas fa-clock me-1"></i>
+                            <span th:text="${#dates.format(notif.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span>
+                        </small>
                     </div>
                 </div>
             </div>
@@ -347,285 +186,7 @@
     </div>
 
     <div th:replace="~{MBVGComponentes/MBVGfooter :: footerPrincipal}"></div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
 
-            let UBICACIONES_PERU = {};
-
-            const form = document.querySelector("form[action*='/cliente/solicitar-traslado']");
-            const alerta = document.getElementById("alertaUbicacion");
-            const mensaje = document.getElementById("mensajeUbicacion");
-
-            const regionOrigen = document.getElementById("regionOrigen");
-            const provinciaOrigen = document.getElementById("provinciaOrigen");
-            const distritoOrigen = document.getElementById("distritoOrigen");
-
-            const regionDestino = document.getElementById("regionDestino");
-            const provinciaDestino = document.getElementById("provinciaDestino");
-            const distritoDestino = document.getElementById("distritoDestino");
-
-            const origenFinal = document.getElementById("origenFinal");
-            const destinoFinal = document.getElementById("destinoFinal");
-            
-            const tipoVehiculo = document.querySelector("[name='tipoVehiculo']");
-            const observacionesVehiculo = document.querySelector("[name='observaciones']");
-            
-            const btnAnalizarIa = document.getElementById("btnAnalizarIa");
-            const resultadoIaCategoria = document.getElementById("resultadoIaCategoria");
-            
-            function normalizarTexto(texto) {
-                return (texto || "")
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "");
-            }
-
-            function validarCategoriaVehiculo() {
-                const categoria = normalizarTexto(tipoVehiculo ? tipoVehiculo.value : "");
-                const observaciones = normalizarTexto(observacionesVehiculo ? observacionesVehiculo.value : "");
-
-                const marcasPremium = [
-                    "ferrari", "lamborghini", "porsche", "maserati",
-                    "bentley", "rolls royce", "jaguar", "tesla",
-                    "lexus", "audi", "bmw", "mercedes"
-                ];
-
-                const palabrasSuv = [
-                    "suv", "camioneta", "hilux", "fortuner", "rav4",
-                    "jeep", "land cruiser", "prado", "4x4", "pickup"
-                ];
-
-                const esPremium = marcasPremium.some(marca => observaciones.includes(marca));
-                const esSuv = palabrasSuv.some(palabra => observaciones.includes(palabra));
-
-                if (esPremium && categoria !== "premium") {
-                    return "Para vehículos de alta gama debes seleccionar la categoría Premium.";
-                }
-
-                if (esSuv && categoria !== "suv") {
-                    return "Para camionetas o vehículos SUV debes seleccionar la categoría SUV.";
-                }
-
-                return null;
-            }
-            function nombreCategoria(categoria) {
-                if (categoria === "economico") return "Económico";
-                if (categoria === "comfort") return "Confort";
-                if (categoria === "premium") return "Premium";
-                if (categoria === "suv") return "SUV";
-                return categoria;
-            }
-
-            async function analizarCategoriaConIa() {
-                const texto = observacionesVehiculo ? observacionesVehiculo.value.trim() : "";
-
-                if (!texto) {
-                    resultadoIaCategoria.className = "small text-danger";
-                    resultadoIaCategoria.textContent = "Escribe primero los datos del vehículo.";
-                    return;
-                }
-
-                try {
-                    btnAnalizarIa.disabled = true;
-                    resultadoIaCategoria.className = "small text-muted";
-                    resultadoIaCategoria.textContent = "Analizando con IA...";
-
-                    const response = await fetch("/microservicio/ia/recomendar-categoria?texto=" + encodeURIComponent(texto));
-
-                    if (!response.ok) {
-                        throw new Error("No se pudo consultar la IA.");
-                    }
-
-                    const data = await response.json();
-
-                    if (data.categoriaRecomendada && tipoVehiculo) {
-                        tipoVehiculo.value = data.categoriaRecomendada;
-                    }
-
-                    const confianza = data.confianza ? Math.round(data.confianza * 100) : 0;
-
-                    resultadoIaCategoria.className = "small text-success";
-                    resultadoIaCategoria.textContent =
-                        "IA recomienda: " + nombreCategoria(data.categoriaRecomendada) +
-                        " (" + confianza + "%). " + data.motivo;
-
-                } catch (error) {
-                    resultadoIaCategoria.className = "small text-danger";
-                    resultadoIaCategoria.textContent = "No se pudo conectar con el asistente IA.";
-                } finally {
-                    btnAnalizarIa.disabled = false;
-                }
-            }
-            function llenarSelect(select, valores, textoInicial) {
-                select.innerHTML = "";
-
-                const optionDefault = document.createElement("option");
-                optionDefault.value = "";
-                optionDefault.textContent = textoInicial;
-                select.appendChild(optionDefault);
-
-                valores
-                    .filter(valor => valor !== null && valor !== undefined && valor.toString().trim() !== "")
-                    .sort((a, b) => a.localeCompare(b, "es"))
-                    .forEach(valor => {
-                        const option = document.createElement("option");
-                        option.value = valor;
-                        option.textContent = valor;
-                        select.appendChild(option);
-                    });
-            }
-
-            function resetSelect(select, textoInicial, deshabilitado) {
-                llenarSelect(select, [], textoInicial);
-                select.disabled = deshabilitado;
-            }
-
-            function mostrarError(texto) {
-                mensaje.textContent = texto;
-                alerta.classList.remove("d-none");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-
-            function ocultarError() {
-                mensaje.textContent = "";
-                alerta.classList.add("d-none");
-            }
-
-            function cargarRegiones() {
-                const regiones = Object.keys(UBICACIONES_PERU);
-
-                llenarSelect(regionOrigen, regiones, "-- Región --");
-                llenarSelect(regionDestino, regiones, "-- Región --");
-
-                resetSelect(provinciaOrigen, "-- Provincia --", true);
-                resetSelect(distritoOrigen, "-- Distrito --", true);
-
-                resetSelect(provinciaDestino, "-- Provincia --", true);
-                resetSelect(distritoDestino, "-- Distrito --", true);
-            }
-
-            function configurarGrupo(regionSelect, provinciaSelect, distritoSelect) {
-                regionSelect.addEventListener("change", function () {
-                    const region = this.value;
-
-                    resetSelect(provinciaSelect, "-- Provincia --", true);
-                    resetSelect(distritoSelect, "-- Distrito --", true);
-
-                    if (region && UBICACIONES_PERU[region]) {
-                        const provincias = Object.keys(UBICACIONES_PERU[region]);
-                        llenarSelect(provinciaSelect, provincias, "-- Provincia --");
-                        provinciaSelect.disabled = false;
-                    }
-                });
-
-                provinciaSelect.addEventListener("change", function () {
-                    const region = regionSelect.value;
-                    const provincia = this.value;
-
-                    resetSelect(distritoSelect, "-- Distrito --", true);
-
-                    if (region && provincia && UBICACIONES_PERU[region] && UBICACIONES_PERU[region][provincia]) {
-                        const distritos = Object.keys(UBICACIONES_PERU[region][provincia]);
-                        llenarSelect(distritoSelect, distritos, "-- Distrito --");
-                        distritoSelect.disabled = false;
-                    }
-                });
-            }
-
-            function armarUbicacion(regionSelect, provinciaSelect, distritoSelect) {
-                const region = regionSelect.value;
-                const provincia = provinciaSelect.value;
-                const distrito = distritoSelect.value;
-
-                if (!region || !provincia || !distrito) {
-                    return "";
-                }
-
-                return distrito + ", " + provincia + ", " + region + ", Perú";
-            }
-
-            async function cargarUbigeoPeru() {
-                try {
-                    regionOrigen.disabled = true;
-                    regionDestino.disabled = true;
-
-                    llenarSelect(regionOrigen, [], "Cargando regiones...");
-                    llenarSelect(regionDestino, [], "Cargando regiones...");
-
-                    const response = await fetch("https://free.e-api.net.pe/ubigeos.json");
-
-                    if (!response.ok) {
-                        throw new Error("No se pudo cargar el ubigeo.");
-                    }
-
-                    UBICACIONES_PERU = await response.json();
-
-                    cargarRegiones();
-
-                    regionOrigen.disabled = false;
-                    regionDestino.disabled = false;
-
-                } catch (error) {
-                    console.error(error);
-
-                    llenarSelect(regionOrigen, [], "-- Región --");
-                    llenarSelect(regionDestino, [], "-- Región --");
-
-                    regionOrigen.disabled = true;
-                    regionDestino.disabled = true;
-
-                    mostrarError("No se pudo cargar la lista completa de regiones, provincias y distritos del Perú. Verifica tu conexión a internet.");
-                }
-            }
-
-            configurarGrupo(regionOrigen, provinciaOrigen, distritoOrigen);
-            configurarGrupo(regionDestino, provinciaDestino, distritoDestino);
-
-                cargarUbigeoPeru();
-
-                if (btnAnalizarIa) {
-                    btnAnalizarIa.addEventListener("click", analizarCategoriaConIa);
-                }
-
-                if (form) {
-                form.addEventListener("submit", function (event) {
-                    ocultarError();
-
-                    const origen = armarUbicacion(regionOrigen, provinciaOrigen, distritoOrigen);
-                    const destino = armarUbicacion(regionDestino, provinciaDestino, distritoDestino);
-
-                    if (!origen) {
-                        event.preventDefault();
-                        mostrarError("Debe seleccionar región, provincia y distrito del origen.");
-                        return;
-                    }
-
-                    if (!destino) {
-                        event.preventDefault();
-                        mostrarError("Debe seleccionar región, provincia y distrito del destino.");
-                        return;
-                    }
-
-                    if (origen.toLowerCase() === destino.toLowerCase()) {
-                        event.preventDefault();
-                        mostrarError("El origen y el destino no pueden ser iguales.");
-                        return;
-                    }
-
-                    const errorCategoria = validarCategoriaVehiculo();
-
-                    if (errorCategoria) {
-                        event.preventDefault();
-                        mostrarError(errorCategoria);
-                        return;
-                    }
-
-                    origenFinal.value = origen;
-                    destinoFinal.value = destino;
-                });
-            }
-        });
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

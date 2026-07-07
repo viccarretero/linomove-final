@@ -167,14 +167,14 @@
         }
         
         .btn-conductor-custom {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            background: linear-gradient(135deg, #6b7bd6 0%, #4a5fc1 100%);
             color: white;
-            box-shadow: 0 10px 30px rgba(243, 156, 18, 0.30);
+            box-shadow: 0 10px 30px rgba(107, 123, 214, 0.25);
         }
-
+        
         .btn-conductor-custom:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(243, 156, 18, 0.45);
+            box-shadow: 0 15px 40px rgba(107, 123, 214, 0.35);
             color: white;
         }
         
@@ -471,12 +471,14 @@
                     <h1 class="hero-title">Traslado Profesional de Vehículos</h1>
                     <p class="hero-subtitle">Solicite un conductor autorizado para trasladar su vehículo desde el punto de origen hasta el destino, con seguimiento por geolocalización durante el servicio.</p>
                     <div class="access-buttons">
-                        <a th:href="@{/login-cliente}" class="btn-custom btn-primary-custom">
+                        <a th:href="@{/login-cliente}" class="btn btn-custom btn-primary-custom">
                             <i class="fas fa-user me-2"></i>Acceso Clientes
                         </a>
-                        
-                        <a th:href="@{/login-conductor}" class="btn-custom btn-conductor-custom">
+                        <a th:href="@{/login-conductor}" class="btn btn-custom btn-conductor-custom">
                             <i class="fas fa-id-card me-2"></i>Zona Conductores
+                        </a>
+                        <a th:href="@{/login-admin}" class="btn btn-custom btn-admin-custom">
+                            <i class="fas fa-lock me-2"></i>Panel Admin
                         </a>
                     </div>
                 </div>
