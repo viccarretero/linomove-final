@@ -38,9 +38,14 @@ public class MBVGSecurityConfig {
                     "/images/**",
                     "/static/**",
                     "/api/**",
+                    "/microservicio/**",
                     "/error"
                 ).permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                // Panel admin web deshabilitado.
+                // El admin se maneja desde la aplicación de escritorio.
+                .requestMatchers("/admin/**").denyAll()
+
                 .requestMatchers("/conductor/**").hasRole("CONDUCTOR")
                 .requestMatchers("/cliente/**").hasRole("CLIENTE")
                 .anyRequest().authenticated()
@@ -52,7 +57,7 @@ public class MBVGSecurityConfig {
                     String context = request.getContextPath();
 
                     if (uri.startsWith(context + "/admin")) {
-                        response.sendRedirect(context + "/login-admin");
+                        response.sendRedirect(context + "/");
                     } else if (uri.startsWith(context + "/conductor")) {
                         response.sendRedirect(context + "/login-conductor");
                     } else {
@@ -65,7 +70,7 @@ public class MBVGSecurityConfig {
                     String context = request.getContextPath();
 
                     if (uri.startsWith(context + "/admin")) {
-                        response.sendRedirect(context + "/login-admin?error");
+                        response.sendRedirect(context + "/");
                     } else if (uri.startsWith(context + "/conductor")) {
                         response.sendRedirect(context + "/login-conductor?error");
                     } else {
@@ -85,9 +90,7 @@ public class MBVGSecurityConfig {
                     String tipoUsuario = request.getParameter("tipoUsuario");
                     String context = request.getContextPath();
 
-                    if ("admin".equalsIgnoreCase(tipoUsuario)) {
-                        response.sendRedirect(context + "/login-admin?error");
-                    } else if ("conductor".equalsIgnoreCase(tipoUsuario)) {
+                    if ("conductor".equalsIgnoreCase(tipoUsuario)) {
                         response.sendRedirect(context + "/login-conductor?error");
                     } else {
                         response.sendRedirect(context + "/login-cliente?error");
