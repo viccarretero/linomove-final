@@ -241,6 +241,13 @@
                         <div class="form-text">
                             Aquí el cliente puede indicar datos del vehículo que será trasladado.
                         </div>
+
+                        <div class="mt-2 d-flex gap-2 flex-wrap align-items-center">
+                            <button type="button" id="btnAnalizarIa" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-robot me-1"></i>Analizar con IA
+                            </button>
+                            <span id="resultadoIaCategoria" class="small text-muted"></span>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">
@@ -363,6 +370,9 @@
             const tipoVehiculo = document.querySelector("[name='tipoVehiculo']");
             const observacionesVehiculo = document.querySelector("[name='observaciones']");
             
+            const btnAnalizarIa = document.getElementById("btnAnalizarIa");
+            const resultadoIaCategoria = document.getElementById("resultadoIaCategoria");
+            
             function normalizarTexto(texto) {
                 return (texto || "")
                     .toLowerCase()
@@ -397,6 +407,54 @@
                 }
 
                 return null;
+            }
+            function nombreCategoria(categoria) {
+                if (categoria === "economico") return "Económico";
+                if (categoria === "comfort") return "Confort";
+                if (categoria === "premium") return "Premium";
+                if (categoria === "suv") return "SUV";
+                return categoria;
+            }
+
+            async function analizarCategoriaConIa() {
+                const texto = observacionesVehiculo ? observacionesVehiculo.value.trim() : "";
+
+                if (!texto) {
+                    resultadoIaCategoria.className = "small text-danger";
+                    resultadoIaCategoria.textContent = "Escribe primero los datos del vehículo.";
+                    return;
+                }
+
+                try {
+                    btnAnalizarIa.disabled = true;
+                    resultadoIaCategoria.className = "small text-muted";
+                    resultadoIaCategoria.textContent = "Analizando con IA...";
+
+                    const response = await fetch("/microservicio/ia/recomendar-categoria?texto=" + encodeURIComponent(texto));
+
+                    if (!response.ok) {
+                        throw new Error("No se pudo consultar la IA.");
+                    }
+
+                    const data = await response.json();
+
+                    if (data.categoriaRecomendada && tipoVehiculo) {
+                        tipoVehiculo.value = data.categoriaRecomendada;
+                    }
+
+                    const confianza = data.confianza ? Math.round(data.confianza * 100) : 0;
+
+                    resultadoIaCategoria.className = "small text-success";
+                    resultadoIaCategoria.textContent =
+                        "IA recomienda: " + nombreCategoria(data.categoriaRecomendada) +
+                        " (" + confianza + "%). " + data.motivo;
+
+                } catch (error) {
+                    resultadoIaCategoria.className = "small text-danger";
+                    resultadoIaCategoria.textContent = "No se pudo conectar con el asistente IA.";
+                } finally {
+                    btnAnalizarIa.disabled = false;
+                }
             }
             function llenarSelect(select, valores, textoInicial) {
                 select.innerHTML = "";
@@ -523,9 +581,13 @@
             configurarGrupo(regionOrigen, provinciaOrigen, distritoOrigen);
             configurarGrupo(regionDestino, provinciaDestino, distritoDestino);
 
-            cargarUbigeoPeru();
+                cargarUbigeoPeru();
 
-            if (form) {
+                if (btnAnalizarIa) {
+                    btnAnalizarIa.addEventListener("click", analizarCategoriaConIa);
+                }
+
+                if (form) {
                 form.addEventListener("submit", function (event) {
                     ocultarError();
 
